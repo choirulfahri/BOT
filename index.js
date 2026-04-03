@@ -22,13 +22,15 @@ client.commands = new Collection();
 // Setup Discord-Player untuk Musik
 client.player = new Player(client, {
     skipFFmpeg: false,
+    connectionTimeout: 60000,     // Timeout koneksi 60 detik (default 20 detik)
     defaultNodeOptions: {
-        leaveOnEmpty: false,      // Bot tidak keluar saat channel kosong
+        leaveOnEmpty: false,
         leaveOnEmptyCooldown: 0,
-        leaveOnEnd: false,        // Bot tidak keluar saat lagu habis
+        leaveOnEnd: false,
         leaveOnEndCooldown: 0,
-        leaveOnStop: false,       // Bot tidak keluar saat /stop dipanggil
+        leaveOnStop: false,
         leaveOnStopCooldown: 0,
+        connectionTimeout: 60000, // Timeout per node
     }
 });
 
