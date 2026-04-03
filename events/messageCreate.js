@@ -26,7 +26,10 @@ const badWords = [
     'jancok', 'jncok',
     'cuki', 'cukimai',
     'asu',
-    'celeng',
+    'celeng', 'jembut', 'jmbt',
+    'pukimai', 'pendo',
+    'lolok', 'maklu lonte',
+    'bitch', 'zuya',
 ];
 
 // =====================================================
