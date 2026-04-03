@@ -3,7 +3,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 const { Player } = require('discord-player');
-const { DefaultExtractors } = require('@discord-player/extractor');
 
 // Inisialisasi Klien Discord
 const client = new Client({
@@ -23,8 +22,16 @@ client.commands = new Collection();
 // Setup Discord-Player untuk Musik
 client.player = new Player(client);
 
-// Mengekstrak metadata Youtube dsb (menggunakan latest discord-player API)
-client.player.extractors.loadMulti(DefaultExtractors);
+// Mengekstrak metadata Youtube dsb
+(async () => {
+    try {
+        const { DefaultExtractors } = require('@discord-player/extractor');
+        await client.player.extractors.loadMulti(DefaultExtractors);
+        console.log('[Musik] Extractor berhasil dimuat.');
+    } catch (e) {
+        console.warn('[Musik] Gagal memuat extractor:', e.message);
+    }
+})();
 
 // === COMMAND HANDLER ===
 const foldersPath = path.join(__dirname, 'commands');
