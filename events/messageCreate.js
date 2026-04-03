@@ -118,7 +118,9 @@ module.exports = {
         if (isPhishing) {
             // Hapus pesan phishing
             await message.delete().catch(err => {
-                if (err.code !== 10008) console.error('Gagal hapus pesan phishing:', err);
+                if (err.code === 10008) return; // pesan sudah dihapus
+                if (err.code === 50013) return console.error('[Phishing] Bot tidak punya izin hapus pesan di channel ini!');
+                console.error('[Phishing] Gagal hapus pesan:', err.message);
             });
 
             // Kirim embed peringatan phishing di channel
@@ -162,7 +164,9 @@ module.exports = {
             try {
                 // Hapus pesan kata kasar
                 await message.delete().catch(err => {
-                    if (err.code !== 10008) console.error('Gagal hapus pesan:', err);
+                    if (err.code === 10008) return; // pesan sudah dihapus
+                    if (err.code === 50013) return console.error('[BadWord] Bot tidak punya izin hapus pesan di channel ini! Pastikan bot punya role Manage Messages.');
+                    console.error('[BadWord] Gagal hapus pesan:', err.message);
                 });
 
                 // Tambah hitungan peringatan
