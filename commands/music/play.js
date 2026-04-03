@@ -62,14 +62,14 @@ module.exports = {
                     .setThumbnail(res.track.thumbnail)
                     .setTimestamp();
 
-                await interaction.followUp({ embeds: [queueEmbed] });
+                await interaction.editReply({ embeds: [queueEmbed] });
             } else {
                 // Langsung main
-                await interaction.followUp({ content: `numpang ngamen bawain lagu **${res.track.title}** 🎵` });
+                await interaction.editReply({ content: `numpang ngamen bawain lagu **${res.track.title}** 🎵` });
             }
         } catch (e) {
             console.log(e);
-            await interaction.followUp({ content: `ada yang salah tapi apa ye: ${e.message}`, ephemeral: true });
+            await interaction.editReply({ content: `ada yang salah tapi apa ye: ${e.message}` });
         }
     },
 };
