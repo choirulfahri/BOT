@@ -78,7 +78,7 @@ async function kickUser(message, reason, embedTitle, embedDesc) {
                     .addFields({ name: '📋 Alasan', value: reason })
                     .setTimestamp()
             ]
-        }).catch(() => {});
+        }).catch(() => { });
 
         // Delay 2 detik biar user sempat baca DM
         setTimeout(async () => {
@@ -134,7 +134,7 @@ module.exports = {
             const phishMsg = await message.channel.send({ embeds: [phishEmbed] });
 
             // Hapus pesan peringatan phishing setelah 15 detik
-            setTimeout(() => phishMsg.delete().catch(() => {}), 15000);
+            setTimeout(() => phishMsg.delete().catch(() => { }), 15000);
 
             // Langsung kick
             await kickUser(
@@ -184,25 +184,12 @@ module.exports = {
                     description = `jaga lisan anda`;
                 }
 
-                // Buat embed peringatan
-                const warningEmbed = new EmbedBuilder()
-                    .setColor(color)
-                    .setTitle(title)
-                    .setDescription(`<@${message.author.id}>, ${description}`)
-                    .addFields(
-                        { name: '📋 Alasan', value: 'Penggunaan kata kasar/tidak pantas', inline: true },
-                        { name: '🔢 Total Pelanggaran', value: `${currentWarnings}x`, inline: true }
-                    )
-                    .setThumbnail(message.author.displayAvatarURL())
-                    .setFooter({ text: 'Pesan ini akan dihapus dalam 8 detik' })
-                    .setTimestamp();
-
                 // Kirim peringatan
                 const warningMessage = await message.channel.send({ embeds: [warningEmbed] });
 
                 // Hapus pesan peringatan setelah 8 detik
                 setTimeout(() => {
-                    warningMessage.delete().catch(() => {});
+                    warningMessage.delete().catch(() => { });
                 }, 8000);
 
             } catch (error) {
