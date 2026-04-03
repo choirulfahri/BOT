@@ -27,7 +27,18 @@ client.player = new Player(client, {
         leaveOnEmptyCooldown: 0,
         leaveOnEnd: false,        // Bot tidak keluar saat lagu habis
         leaveOnEndCooldown: 0,
+        leaveOnStop: false,       // Bot tidak keluar saat /stop dipanggil
+        leaveOnStopCooldown: 0,
     }
+});
+
+// Wajib: tambahkan error event listener agar tidak crash
+client.player.events.on('error', (queue, error) => {
+    console.error(`[Player Error] Server: ${queue.guild.name} | Error: ${error.message}`);
+});
+
+client.player.events.on('playerError', (queue, error) => {
+    console.error(`[Player Error] Gagal memutar lagu di ${queue.guild.name}: ${error.message}`);
 });
 
 // Mengekstrak metadata Youtube dsb
