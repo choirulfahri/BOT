@@ -121,14 +121,14 @@ module.exports = {
             // Kirim embed peringatan phishing di channel
             const phishEmbed = new EmbedBuilder()
                 .setColor(0x8B0000) // Merah gelap
-                .setTitle('🎣 Link Phishing / Scam Terdeteksi!')
+                .setTitle('Link Phishing / Scam Terdeteksi!')
                 .setDescription(`<@${message.author.id}> telah mengirim konten mencurigakan dan **langsung dikeluarkan** dari server!`)
                 .addFields(
-                    { name: '⚠️ Jenis Pelanggaran', value: 'Phishing / Link Scam', inline: true },
-                    { name: '🔨 Tindakan', value: 'Kick Otomatis', inline: true }
+                    { name: 'Jenis Pelanggaran', value: 'Phishing / Link Scam', inline: true },
+                    { name: 'Tindakan', value: 'Kick Otomatis', inline: true }
                 )
                 .setThumbnail(message.author.displayAvatarURL())
-                .setFooter({ text: 'Jangan klik link mencurigakan dari siapapun!' })
+                .setFooter({ text: 'Jangan klik link sembarang ya members' })
                 .setTimestamp();
 
             const phishMsg = await message.channel.send({ embeds: [phishEmbed] });
@@ -140,8 +140,8 @@ module.exports = {
             await kickUser(
                 message,
                 'Mengirim konten phishing/scam di server',
-                '🚨 Kamu Telah Dikeluarkan dari Server!',
-                'Kamu telah dikeluarkan karena mengirim **link phishing atau konten scam**. Harap berhati-hati di masa depan.'
+                'kick ye bang sorry nich',
+                'bang plis jangan mencet link link dari stream vidio porn0 bang'
             );
 
             return; // Berhenti, tidak perlu cek badword lagi
@@ -173,19 +173,21 @@ module.exports = {
                 if (currentWarnings >= 3) {
                     color = 0xFF0000;
                     title = 'yo yo yo jaga lisan anda';
-                    description = `Ini pelanggaran ke-**${currentWarnings}** Anda. Admin datang menjemput anda!`;
+                    description = `Ini ke-**${currentWarnings}**. sekali lagi anda dijemput!`;
                 } else if (currentWarnings === 2) {
                     color = 0xFF8C00;
                     title = '⚠️ yo yo yo udah 2 kali ye';
-                    description = `Anda sudah melanggar **2 kali**. sekali lagi anda dijemput!`;
+                    description = `udah **2 kali**. sekali lagi anda dijemput!`;
                 } else {
                     color = 0xFFD700;
-                    title = 'gabisa di bilangin nih bocah ye';
-                    description = `jaga lisan anda`;
+                    title = 'Jangan kasar cuy';
+                    description = `Lisannya dijaga ya`;
                 }
 
-                // Kirim peringatan
-                const warningMessage = await message.channel.send({ embeds: [warningEmbed] });
+                // Kirim peringatan (teks biasa)
+                const warningMessage = await message.channel.send(
+                    `**${title}**\n<@${message.author.id}>, ${description} (Pelanggaran ke-${currentWarnings})`
+                );
 
                 // Hapus pesan peringatan setelah 8 detik
                 setTimeout(() => {
