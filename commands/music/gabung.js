@@ -3,7 +3,7 @@ const { joinVoiceChannel } = require('@discordjs/voice');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('masuk')
+        .setName('gabung')
         .setDescription('Panggil bot masuk ke voice channel kamu tanpa putar musik'),
     async execute(interaction) {
         const userChannel = interaction.member.voice.channel;
