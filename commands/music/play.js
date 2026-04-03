@@ -2,8 +2,8 @@ const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('play')
-        .setDescription('Memutar musik dari YouTube, Spotify, Soundcloud, dll.')
+        .setName('musik')
+        .setDescription('sip numpang ngamen')
         .addStringOption(option =>
             option.setName('lagu')
                 .setDescription('Judul lagu atau URL lagu yang ingin diputar')
@@ -13,7 +13,7 @@ module.exports = {
         const channel = interaction.member.voice.channel;
 
         if (!channel) {
-            return interaction.reply({ content: '❌ Anda harus berada di dalam voice channel untuk memutar lagu!', ephemeral: true });
+            return interaction.reply({ content: 'yeh dongo di ke voice channel dulu', ephemeral: true });
         }
 
         await interaction.deferReply();
@@ -26,11 +26,11 @@ module.exports = {
                 }
             });
 
-            const content = `🎶 Mulai memutar **${res.track.title}**!`;
+            const content = `numpang ngamen bawain lagu${res.track.title}`;
             await interaction.followUp({ content });
         } catch (e) {
             console.log(e);
-            await interaction.followUp({ content: `❌ Terjadi kesalahan saat mencoba memutar musik: ${e.message}`, ephemeral: true });
+            await interaction.followUp({ content: `ada yang salah tapi apa ye ${e.message}`, ephemeral: true });
         }
     },
 };

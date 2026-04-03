@@ -20,7 +20,15 @@ const client = new Client({
 client.commands = new Collection();
 
 // Setup Discord-Player untuk Musik
-client.player = new Player(client);
+client.player = new Player(client, {
+    skipFFmpeg: false,
+    defaultNodeOptions: {
+        leaveOnEmpty: false,      // Bot tidak keluar saat channel kosong
+        leaveOnEmptyCooldown: 0,
+        leaveOnEnd: false,        // Bot tidak keluar saat lagu habis
+        leaveOnEndCooldown: 0,
+    }
+});
 
 // Mengekstrak metadata Youtube dsb
 (async () => {
