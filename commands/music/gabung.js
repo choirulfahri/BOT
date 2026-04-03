@@ -3,7 +3,7 @@ const { joinVoiceChannel } = require('@discordjs/voice');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('')
+        .setName('masuk')
         .setDescription('Panggil bot masuk ke voice channel kamu tanpa putar musik'),
     async execute(interaction) {
         const userChannel = interaction.member.voice.channel;
@@ -15,7 +15,7 @@ module.exports = {
         // Cek apakah bot sudah ada di channel yang sama
         const botVoiceState = interaction.guild.members.me.voice;
         if (botVoiceState.channel && botVoiceState.channel.id === userChannel.id) {
-            return interaction.reply({ content: `gue udah di sini bro, di **${userChannel.name}** 😎`, ephemeral: true });
+            return interaction.reply({ content: `whatsapp ${userChannel.name} 😎`, ephemeral: true });
         }
 
         try {
