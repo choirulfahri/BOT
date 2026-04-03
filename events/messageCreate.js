@@ -29,8 +29,73 @@ const badWords = [
     'celeng',
 ];
 
-// Sistem peringatan (track berapa kali member melanggar)
+// =====================================================
+// DAFTAR POLA PHISHING - Deteksi link & konten scam
+// =====================================================
+const phishingPatterns = [
+    // Discord Nitro Scam
+    /discord[.\-]?gift/i,
+    /discordnitro/i,
+    /free.?nitro/i,
+    /nitro.?free/i,
+    /discord.?nitro.?giveaway/i,
+    /claim.?nitro/i,
+
+    // Steam Scam
+    /steam.?gift/i,
+    /steamcommunity\.com\/gift/i,
+    /free.?steam/i,
+    /steam.?free/i,
+
+    // URL Shortener + Klaim Hadiah (sering dipakai phishing)
+    /(bit\.ly|tinyurl\.com|t\.co|cutt\.ly|rb\.gy).+?(free|gift|nitro|claim|win)/i,
+
+    // Fake gift / reward
+    /you.?(have|got|won|received).+?(gift|prize|reward|nitro)/i,
+    /klik.?(link|disini|sini).+(gratis|free|hadiah|menang)/i,
+    /claim.?your.?(gift|prize|reward|free)/i,
+
+    // Domain mencurigakan yang mirip Discord
+    /discords?[^.]*\.(xyz|tk|ml|ga|cf|gq|ru|cn)/i,
+    /dlscord/i,
+    /disc0rd/i,
+    /d1scord/i,
+];
+
+// Sistem peringatan (track berapa kali member melanggar kata kasar)
 const warningCount = new Map();
+
+// Fungsi untuk kick user dengan DM notifikasi
+async function kickUser(message, reason, embedTitle, embedDesc) {
+    try {
+        // Kirim DM dulu sebelum kick
+        await message.author.send({
+            embeds: [
+                new EmbedBuilder()
+                    .setColor(0xFF0000)
+                    .setTitle('🚨 Kamu Telah Dikeluarkan dari Server!')
+                    .setDescription(embedDesc)
+                    .addFields({ name: '📋 Alasan', value: reason })
+                    .setTimestamp()
+            ]
+        }).catch(() => {});
+
+        // Delay 2 detik biar user sempat baca DM
+        setTimeout(async () => {
+            try {
+                const member = message.guild.members.cache.get(message.author.id);
+                if (member && member.kickable) {
+                    await member.kick(reason);
+                    console.log(`[AutoKick] ${message.author.tag} dikick. Alasan: ${reason}`);
+                }
+            } catch (e) {
+                console.error('Gagal auto-kick:', e);
+            }
+        }, 2000);
+    } catch (e) {
+        console.error('Gagal proses kick:', e);
+    }
+}
 
 module.exports = {
     name: Events.MessageCreate,
@@ -40,21 +105,64 @@ module.exports = {
         if (message.author.bot) return;
         if (!message.guild) return;
 
-        // Cek filter kata kasar
         const contentLower = message.content.toLowerCase();
 
+        // =====================================================
+        // CEK PHISHING TERLEBIH DAHULU (prioritas lebih tinggi)
+        // =====================================================
+        const isPhishing = phishingPatterns.some(pattern => pattern.test(message.content));
+
+        if (isPhishing) {
+            // Hapus pesan phishing
+            await message.delete().catch(err => {
+                if (err.code !== 10008) console.error('Gagal hapus pesan phishing:', err);
+            });
+
+            // Kirim embed peringatan phishing di channel
+            const phishEmbed = new EmbedBuilder()
+                .setColor(0x8B0000) // Merah gelap
+                .setTitle('🎣 Link Phishing / Scam Terdeteksi!')
+                .setDescription(`<@${message.author.id}> telah mengirim konten mencurigakan dan **langsung dikeluarkan** dari server!`)
+                .addFields(
+                    { name: '⚠️ Jenis Pelanggaran', value: 'Phishing / Link Scam', inline: true },
+                    { name: '🔨 Tindakan', value: 'Kick Otomatis', inline: true }
+                )
+                .setThumbnail(message.author.displayAvatarURL())
+                .setFooter({ text: 'Jangan klik link mencurigakan dari siapapun!' })
+                .setTimestamp();
+
+            const phishMsg = await message.channel.send({ embeds: [phishEmbed] });
+
+            // Hapus pesan peringatan phishing setelah 15 detik
+            setTimeout(() => phishMsg.delete().catch(() => {}), 15000);
+
+            // Langsung kick
+            await kickUser(
+                message,
+                'Mengirim konten phishing/scam di server',
+                '🚨 Kamu Telah Dikeluarkan dari Server!',
+                'Kamu telah dikeluarkan karena mengirim **link phishing atau konten scam**. Harap berhati-hati di masa depan.'
+            );
+
+            return; // Berhenti, tidak perlu cek badword lagi
+        }
+
+        // =====================================================
+        // CEK KATA KASAR
+        // =====================================================
         const foundWord = badWords.find(word => {
-            // Cek dengan word boundary
             const regex = new RegExp(`(^|\\s|[^a-zA-Z])${word}($|\\s|[^a-zA-Z])`, 'i');
             return regex.test(contentLower);
         });
 
         if (foundWord) {
             try {
-                // Hapus pesan yang mengandung kata kasar
-                await message.delete();
+                // Hapus pesan kata kasar
+                await message.delete().catch(err => {
+                    if (err.code !== 10008) console.error('Gagal hapus pesan:', err);
+                });
 
-                // Tambah hitungan peringatan untuk user ini
+                // Tambah hitungan peringatan
                 const userId = message.author.id;
                 const currentWarnings = (warningCount.get(userId) || 0) + 1;
                 warningCount.set(userId, currentWarnings);
@@ -63,20 +171,20 @@ module.exports = {
                 let color, title, description;
 
                 if (currentWarnings >= 3) {
-                    color = 0xFF0000; // Merah - peringatan serius
+                    color = 0xFF0000;
                     title = 'yo yo yo jaga lisan anda';
                     description = `Ini pelanggaran ke-**${currentWarnings}** Anda. Admin datang menjemput anda!`;
                 } else if (currentWarnings === 2) {
-                    color = 0xFF8C00; // Oranye - peringatan kedua
+                    color = 0xFF8C00;
                     title = '⚠️ yo yo yo udah 2 kali ye';
                     description = `Anda sudah melanggar **2 kali**. sekali lagi anda dijemput!`;
                 } else {
-                    color = 0xFFD700; // Kuning - peringatan pertama
+                    color = 0xFFD700;
                     title = 'gabisa di bilangin nih bocah ye';
                     description = `jaga lisan anda`;
                 }
 
-                // Buat embed peringatan yang bagus
+                // Buat embed peringatan
                 const warningEmbed = new EmbedBuilder()
                     .setColor(color)
                     .setTitle(title)
@@ -94,47 +202,11 @@ module.exports = {
 
                 // Hapus pesan peringatan setelah 8 detik
                 setTimeout(() => {
-                    warningMessage.delete().catch(() => { });
+                    warningMessage.delete().catch(() => {});
                 }, 8000);
 
-                // AUTO-KICK saat pelanggaran ke-3
-                if (currentWarnings >= 3) {
-                    // Reset counter setelah dikick
-                    warningCount.delete(message.author.id);
-
-                    // Coba kirim DM ke user sebelum dikick
-                    try {
-                        await message.author.send({
-                            embeds: [
-                                new EmbedBuilder()
-                                    .setColor(0xFF0000)
-                                    .setTitle('🚨 Kamu Telah Dikeluarkan dari Server!')
-                                    .setDescription(`Kamu telah dikeluarkan dari server karena **3 kali** melanggar aturan kata kasar.`)
-                                    .addFields({ name: '📋 Alasan', value: 'Melanggar aturan kata kasar sebanyak 3 kali' })
-                                    .setTimestamp()
-                            ]
-                        });
-                    } catch (dmError) {
-                        // User mungkin menonaktifkan DM, tidak perlu panic
-                        console.log(`Tidak bisa kirim DM ke ${message.author.tag}`);
-                    }
-
-                    // Tunggu sebentar biar user sempat baca peringatan, lalu kick
-                    setTimeout(async () => {
-                        try {
-                            const member = message.guild.members.cache.get(message.author.id);
-                            if (member && member.kickable) {
-                                await member.kick('Melanggar aturan kata kasar sebanyak 3 kali');
-                                console.log(`[AutoKick] ${message.author.tag} telah dikick karena 3x kata kasar.`);
-                            }
-                        } catch (kickError) {
-                            console.error('Gagal melakukan auto-kick:', kickError);
-                        }
-                    }, 3000); // 3 detik delay biar user sempat baca peringatan
-                }
-
             } catch (error) {
-                console.error('Gagal menghapus pesan kata kasar:', error);
+                console.error('Gagal memproses pesan kata kasar:', error);
             }
         }
     },
