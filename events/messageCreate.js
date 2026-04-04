@@ -1,6 +1,7 @@
-const { Events, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { Events, EmbedBuilder, PermissionsBitField, ChannelType } = require('discord.js');
 const { useQueue, QueueRepeatMode } = require('discord-player');
 const { joinVoiceChannel } = require('@discordjs/voice');
+const voiceStateEvent = require('./voiceStateUpdate');
 
 // =====================================================
 // DAFTAR KATA KASAR - Tambahkan kata baru di sini
@@ -324,8 +325,59 @@ module.exports = {
                 }
             }
 
+            // === PRIVATE VOICE CHANNEL ===
+            if (/(private|room|kamar|vc privat|private room|private vc|ruangan)/i.test(contentLower)) {
+                const requester = message.member;
+                const invitedMembers = message.mentions.members
+                    .filter(m => !m.user.bot && m.id !== message.author.id);
+
+                const permissionOverwrites = [
+                    { id: message.guild.id, deny: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect] },
+                    { id: message.guild.members.me.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.MoveMembers, PermissionsBitField.Flags.ManageChannels] },
+                    { id: requester.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak, PermissionsBitField.Flags.MuteMembers] },
+                ];
+
+                invitedMembers.forEach(member => {
+                    permissionOverwrites.push({
+                        id: member.id,
+                        allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak],
+                    });
+                });
+
+                try {
+                    const privateChannel = await message.guild.channels.create({
+                        name: `🔒 room-${requester.user.username}`,
+                        type: ChannelType.GuildVoice,
+                        parent: requester.voice.channel?.parentId || null,
+                        permissionOverwrites,
+                        userLimit: 1 + invitedMembers.size,
+                        reason: 'Private room dibuat via bot',
+                    });
+
+                    voiceStateEvent.getPrivateChannels().set(privateChannel.id, { ownerId: requester.id, createdAt: Date.now() });
+
+                    if (requester.voice.channel) {
+                        await requester.voice.setChannel(privateChannel).catch(() => {});
+                    }
+
+                    const inviteNames = [];
+                    for (const [, member] of invitedMembers) {
+                        inviteNames.push(member.user.username);
+                        try {
+                            await member.send(`🔒 **${message.author.username}** mengundang kamu ke **Private Room** di server **${message.guild.name}**!\nMasuk ke channel: **${privateChannel.name}**`);
+                        } catch {}
+                    }
+
+                    const siapa = inviteNames.length > 0 ? `bersama ${inviteNames.join(', ')}` : 'tanpa undangan tambahan';
+                    return autoReply(`🔒 private room **${privateChannel.name}** udah dibuat ${siapa}! langsung masuk aja.`);
+                } catch (err) {
+                    console.error('[PrivateVC] Gagal buat private room:', err.message);
+                    return autoReply('gagal buat private room, pastiin bot punya izin Manage Channels');
+                }
+            }
+
             // Jika tidak ada keyword yang cocok
-            return message.reply('hm? mau suruh gue ngapain? 🤔 bilang yang jelas dong, contoh: `@bot putar Hindia` atau `@bot sini`');
+            return autoReply('hm? mau suruh gue ngapain? 🤔 bilang yang jelas dong, contoh: `@bot putar Hindia` atau `@bot sini`');
         }
 
         // =====================================================
