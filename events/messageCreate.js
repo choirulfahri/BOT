@@ -155,20 +155,26 @@ module.exports = {
         // =====================================================
         // CEK KATA KASAR
         // =====================================================
-        const foundWord = badWords.find(word => {
-            const regex = new RegExp(`(^|\\s|[^a-zA-Z])${word}($|\\s|[^a-zA-Z])`, 'i');
-            return regex.test(contentLower);
-        });
+        const foundWord = badWords.find(word => contentLower.includes(word));
 
         if (foundWord) {
             try {
-                // Hapus pesan kata kasar
-                await message.delete().catch(err => {
-                    if (err.code === 10008) return; // pesan sudah dihapus
-                    if (err.code === 50013) return console.error('[BadWord] Bot tidak punya izin hapus pesan di channel ini! Pastikan bot punya role Manage Messages.');
-                    console.error('[BadWord] Gagal hapus pesan:', err.message);
-                });
+                // Cek dulu apakah bot punya izin Manage Messages di channel ini
+                const botMember = message.guild.members.me;
+                const hasPermission = message.channel
+                    .permissionsFor(botMember)
+                    .has('ManageMessages');
 
+                if (!hasPermission) {
+                    console.error(`[BadWord] ❌ Bot tidak punya izin 'Manage Messages' di #${message.channel.name}! Silakan cek role bot di Discord.`);
+                } else {
+                    // Hapus pesan kata kasar
+                    await message.delete().catch(err => {
+                        if (err.code === 10008) return; // pesan sudah dihapus lebih dulu
+                        console.error('[BadWord] Gagal hapus pesan (code ' + err.code + '):', err.message);
+                    });
+                    console.log(`[BadWord] ✅ Pesan dari ${message.author.tag} dihapus. Kata: "${foundWord}"`);
+                }
                 // Tambah hitungan peringatan
                 const userId = message.author.id;
                 const currentWarnings = (warningCount.get(userId) || 0) + 1;
