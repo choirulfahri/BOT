@@ -1,4 +1,6 @@
-const { Events, EmbedBuilder } = require('discord.js');
+const { Events, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { useQueue, QueueRepeatMode } = require('discord-player');
+const { joinVoiceChannel } = require('@discordjs/voice');
 
 // =====================================================
 // DAFTAR KATA KASAR - Tambahkan kata baru di sini
@@ -111,34 +113,166 @@ module.exports = {
         const contentLower = message.content.toLowerCase();
 
         // =====================================================
-        // CEK MENTION BOT - Fitur "ajakin main"
-        // Format: @BotName ajakin @UserTarget main [nama game]
+        // CEK MENTION BOT - Semua command via chat natural
         // =====================================================
         const botMentioned = message.mentions.has(client.user);
         if (botMentioned) {
-            const hasAjakKeyword = /(ajakin|ajak|nyariin|nyari|panggilin|panggil)/i.test(contentLower);
 
-            if (hasAjakKeyword) {
-                // Ambil user yang di-mention (selain bot itu sendiri)
-                const targetUser = message.mentions.users.filter(u => !u.bot).first();
+            // Helper: hapus pesan user + kirim konfirmasi yang auto-delete
+            const autoReply = async (text) => {
+                await message.delete().catch(() => {});
+                const reply = await message.channel.send(`<@${message.author.id}> ${text}`);
+                setTimeout(() => reply.delete().catch(() => {}), 5000);
+            };
 
-                if (!targetUser) {
-                    return message.reply('tag dulu dong siapa yang mau diajak, contoh: `@bot ajakin @temanmu main Valorant`');
+            // === GABUNG KE VOICE CHANNEL ===
+            if (/(sini|gabung|masuk|join|ke sini|kemari)/i.test(contentLower)) {
+                const vc = message.member.voice.channel;
+                if (!vc) return autoReply('kamu harus masuk voice channel dulu bro');
+                const botVc = message.guild.members.me.voice.channel;
+                if (botVc && botVc.id === vc.id) return autoReply(`gue udah di **${vc.name}** bro 😎`);
+                joinVoiceChannel({ channelId: vc.id, guildId: message.guild.id, adapterCreator: message.guild.voiceAdapterCreator, selfDeaf: false });
+                return autoReply(`sip gue gabung ke **${vc.name}** 🎙️`);
+            }
+
+            // === PUTAR MUSIK ===
+            if (/(putar|play|musik|lagu|cari)/i.test(contentLower)) {
+                const vc = message.member.voice.channel;
+                if (!vc) return autoReply('masuk voice channel dulu bro baru minta lagu');
+                const query = message.content
+                    .replace(/<@!?\d+>/g, '').replace(/(putar|play|musik|lagu|cari)/i, '').trim();
+                if (!query) return autoReply('mau putar lagu apa? contoh: `@bot putar Hindia`');
+                await message.delete().catch(() => {});
+                try {
+                    const res = await client.player.play(vc, query, {
+                        nodeOptions: { leaveOnEmpty: false, leaveOnEnd: false, leaveOnStop: false, metadata: message }
+                    });
+                    const r = await message.channel.send(`<@${message.author.id}> numpang ngamen bawain lagu **${res.track.title}** 🎵`);
+                    setTimeout(() => r.delete().catch(() => {}), 5000);
+                    return;
+                } catch (e) {
+                    return autoReply(`gagal putar lagu: ${e.message}`);
                 }
+            }
 
-                // Ambil nama game dari pesan (kata setelah "main")
+            // === STOP MUSIK ===
+            if (/(stop|berhenti|cabut|udahan)/i.test(contentLower)) {
+                const queue = useQueue(message.guild.id);
+                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                queue.tracks.clear();
+                queue.node.stop();
+                return autoReply('oke lagunya distop 🎵');
+            }
+
+            // === SKIP LAGU ===
+            if (/(skip|lewatin|next|lanjut)/i.test(contentLower)) {
+                const queue = useQueue(message.guild.id);
+                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                queue.node.skip();
+                return autoReply('⏭️ oke dilangkahi lagunya!');
+            }
+
+            // === PAUSE ===
+            if (/(pause|tahan|jeda)/i.test(contentLower)) {
+                const queue = useQueue(message.guild.id);
+                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                if (queue.node.isPaused()) return autoReply('udah di-pause bro');
+                queue.node.pause();
+                return autoReply('⏸️ lagu di-pause');
+            }
+
+            // === RESUME ===
+            if (/(resume|lanjutin|terusin|lanjutkan)/i.test(contentLower)) {
+                const queue = useQueue(message.guild.id);
+                if (!queue) return autoReply('ga ada lagu bro');
+                if (!queue.node.isPaused()) return autoReply('lagunya lagi jalan bro');
+                queue.node.resume();
+                return autoReply('▶️ lanjut ngamen lagi!');
+            }
+
+            // === VOLUME ===
+            const volMatch = contentLower.match(/volume\s*(\d+)/);
+            if (volMatch) {
+                const queue = useQueue(message.guild.id);
+                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                const vol = Math.min(100, Math.max(1, parseInt(volMatch[1])));
+                queue.node.setVolume(vol);
+                const emoji = vol > 66 ? '🔊' : vol > 33 ? '🔉' : '🔈';
+                return autoReply(`${emoji} volume diset ke **${vol}%**`);
+            }
+
+            // === ANTRIAN / QUEUE ===
+            if (/(antrian|queue|list lagu|daftar lagu)/i.test(contentLower)) {
+                const queue = useQueue(message.guild.id);
+                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                const tracks = queue.tracks.toArray();
+                const cur = queue.currentTrack;
+                const list = tracks.length > 0
+                    ? tracks.slice(0, 10).map((t, i) => `\`${i + 1}.\` **${t.title}**`).join('\n')
+                    : '*tidak ada antrian*';
+                return autoReply(`🎵 **Sekarang:** ${cur.title}\n\n📋 **Antrian:**\n${list}`);
+            }
+
+            // === NOWPLAYING ===
+            if (/(lagu apa|lagi play|putar apa|nowplaying|sekarang)/i.test(contentLower)) {
+                const queue = useQueue(message.guild.id);
+                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                const track = queue.currentTrack;
+                return autoReply(`🎵 Lagi putar: **${track.title}** - ${track.author} (${track.duration})`);
+            }
+
+            // === LOOP ===
+            if (/(loop|ulangin|repeat)/i.test(contentLower)) {
+                const queue = useQueue(message.guild.id);
+                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                if (queue.repeatMode === QueueRepeatMode.OFF) {
+                    queue.setRepeatMode(QueueRepeatMode.TRACK);
+                    return autoReply('🔂 loop 1 lagu aktif!');
+                } else if (queue.repeatMode === QueueRepeatMode.TRACK) {
+                    queue.setRepeatMode(QueueRepeatMode.QUEUE);
+                    return autoReply('🔁 loop semua antrian aktif!');
+                } else {
+                    queue.setRepeatMode(QueueRepeatMode.OFF);
+                    return autoReply('🚫 loop dimatiin');
+                }
+            }
+
+            // === KICK USER ===
+            if (/(kick|keluarin|usir)/i.test(contentLower)) {
+                if (!message.member.permissions.has(PermissionsBitField.Flags.KickMembers))
+                    return autoReply('kamu ga punya izin kick member bro');
+                const target = message.mentions.members.filter(m => !m.user.bot && m.id !== message.author.id).first();
+                if (!target) return autoReply('tag dulu siapa yang mau dikick');
+                if (!target.kickable) return autoReply('ga bisa kick orang itu, role-nya lebih tinggi dari gue');
+                await target.kick('Dikick via perintah chat');
+                return autoReply(`✅ **${target.user.username}** udah dikick`);
+            }
+
+            // === HAPUS PESAN / CLEAR ===
+            const hapusMatch = contentLower.match(/(hapus|clear|bersihkan)\s*(\d+)/);
+            if (hapusMatch) {
+                if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages))
+                    return autoReply('kamu ga punya izin hapus pesan bro');
+                const amount = Math.min(100, parseInt(hapusMatch[2]));
+                await message.channel.bulkDelete(amount + 1, true).catch(() => {});
+                const notif = await message.channel.send(`✅ ${amount} pesan berhasil dihapus`);
+                setTimeout(() => notif.delete().catch(() => {}), 3000);
+                return;
+            }
+
+            // === AJAK MAIN ===
+            if (/(ajakin|ajak|nyariin|nyari|panggilin|panggil)/i.test(contentLower)) {
+                const targetUser = message.mentions.users.filter(u => !u.bot).first();
+                if (!targetUser) return message.reply('tag dulu siapa yang mau diajak, contoh: `@bot ajakin @teman main Valorant`');
                 const mainIndex = contentLower.indexOf('main');
                 const gameName = mainIndex !== -1
                     ? message.content.slice(mainIndex + 5).replace(/<[^>]+>/g, '').trim()
                     : 'game';
-
-                // Kirim DM ke target user
                 try {
-                    const { EmbedBuilder } = require('discord.js');
                     const dmEmbed = new EmbedBuilder()
                         .setColor(0x5865F2)
                         .setTitle('🎮 Ada yang Nyariin Kamu!')
-                        .setDescription(`**${message.author.username}** lagi nyariin kamu buat main bareng nih!`)
+                        .setDescription(`**${message.author.username}** lagi nyariin kamu buat main bareng!`)
                         .addFields(
                             { name: '🎯 Game', value: `**${gameName || 'game'}**`, inline: true },
                             { name: '🏠 Server', value: message.guild.name, inline: true }
@@ -146,18 +280,52 @@ module.exports = {
                         .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
                         .setFooter({ text: `Hubungi balik ${message.author.username} di server!` })
                         .setTimestamp();
+                    await targetUser.send({ embeds: [dmEmbed] });
+                    return message.reply(`sip! udah gue DM-in **${targetUser.username}** buat diajak main **${gameName || 'game'}** 🎮`);
+                } catch (err) {
+                    return message.reply(err.code === 50007
+                        ? `gagal DM **${targetUser.username}**, DM-nya dikunci`
+                        : 'ada error nih, coba lagi');
+                }
+            }
+
+            // === DM TEMAN ===
+            if (/(dm|kirimin pesan|kasih tau|pesan ke|pm)/i.test(contentLower)) {
+                const targetUser = message.mentions.users.filter(u => !u.bot && u.id !== message.author.id).first();
+                if (!targetUser) return message.reply('tag dulu siapa yang mau di-DM, contoh: `@bot dm @teman hai bro lagi apa?`');
+
+                // Ambil isi pesan (buang semua mention dan keyword)
+                const pesanDM = message.content
+                    .replace(/<@!?\d+>/g, '')  // buang semua mention
+                    .replace(/(dm|kirimin pesan|kasih tau|pesan ke|pm)/i, '') // buang keyword
+                    .trim();
+
+                if (!pesanDM) return message.reply('isi pesannya dong, contoh: `@bot dm @teman hai lagi apa?`');
+
+                try {
+                    const dmEmbed = new EmbedBuilder()
+                        .setColor(0x5865F2)
+                        .setTitle('📨 Ada Pesan Buat Kamu!')
+                        .setDescription(pesanDM)
+                        .addFields(
+                            { name: '👤 Dari', value: `${message.author.username}`, inline: true },
+                            { name: '🏠 Server', value: message.guild.name, inline: true }
+                        )
+                        .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+                        .setFooter({ text: 'Pesan dikirim via bot' })
+                        .setTimestamp();
 
                     await targetUser.send({ embeds: [dmEmbed] });
-                    await message.reply(`sip! udah gue DM-in **${targetUser.username}** buat diajak main **${gameName || 'game'}** 🎮`);
+                    return message.reply(`✅ pesan udah dikirim ke **${targetUser.username}**!`);
                 } catch (err) {
-                    if (err.code === 50007) {
-                        await message.reply(`gagal DM **${targetUser.username}**, kayaknya DM-nya dikunci deh`);
-                    } else {
-                        await message.reply('ada error nih, coba lagi bang');
-                    }
+                    return message.reply(err.code === 50007
+                        ? `❌ gagal DM **${targetUser.username}**, DM-nya dikunci nih`
+                        : 'ada error, coba lagi bang');
                 }
-                return;
             }
+
+            // Jika tidak ada keyword yang cocok
+            return message.reply('hm? mau suruh gue ngapain? 🤔 bilang yang jelas dong, contoh: `@bot putar Hindia` atau `@bot sini`');
         }
 
         // =====================================================
