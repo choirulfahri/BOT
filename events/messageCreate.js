@@ -111,6 +111,56 @@ module.exports = {
         const contentLower = message.content.toLowerCase();
 
         // =====================================================
+        // CEK MENTION BOT - Fitur "ajakin main"
+        // Format: @BotName ajakin @UserTarget main [nama game]
+        // =====================================================
+        const botMentioned = message.mentions.has(client.user);
+        if (botMentioned) {
+            const hasAjakKeyword = /(ajakin|ajak|nyariin|nyari|panggilin|panggil)/i.test(contentLower);
+
+            if (hasAjakKeyword) {
+                // Ambil user yang di-mention (selain bot itu sendiri)
+                const targetUser = message.mentions.users.filter(u => !u.bot).first();
+
+                if (!targetUser) {
+                    return message.reply('tag dulu dong siapa yang mau diajak, contoh: `@bot ajakin @temanmu main Valorant`');
+                }
+
+                // Ambil nama game dari pesan (kata setelah "main")
+                const mainIndex = contentLower.indexOf('main');
+                const gameName = mainIndex !== -1
+                    ? message.content.slice(mainIndex + 5).replace(/<[^>]+>/g, '').trim()
+                    : 'game';
+
+                // Kirim DM ke target user
+                try {
+                    const { EmbedBuilder } = require('discord.js');
+                    const dmEmbed = new EmbedBuilder()
+                        .setColor(0x5865F2)
+                        .setTitle('🎮 Ada yang Nyariin Kamu!')
+                        .setDescription(`**${message.author.username}** lagi nyariin kamu buat main bareng nih!`)
+                        .addFields(
+                            { name: '🎯 Game', value: `**${gameName || 'game'}**`, inline: true },
+                            { name: '🏠 Server', value: message.guild.name, inline: true }
+                        )
+                        .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+                        .setFooter({ text: `Hubungi balik ${message.author.username} di server!` })
+                        .setTimestamp();
+
+                    await targetUser.send({ embeds: [dmEmbed] });
+                    await message.reply(`sip! udah gue DM-in **${targetUser.username}** buat diajak main **${gameName || 'game'}** 🎮`);
+                } catch (err) {
+                    if (err.code === 50007) {
+                        await message.reply(`gagal DM **${targetUser.username}**, kayaknya DM-nya dikunci deh`);
+                    } else {
+                        await message.reply('ada error nih, coba lagi bang');
+                    }
+                }
+                return;
+            }
+        }
+
+        // =====================================================
         // CEK PHISHING TERLEBIH DAHULU (prioritas lebih tinggi)
         // =====================================================
         const isPhishing = phishingPatterns.some(pattern => pattern.test(message.content));
