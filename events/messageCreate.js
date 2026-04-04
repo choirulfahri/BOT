@@ -125,14 +125,14 @@ module.exports = {
                 const reply = await message.channel.send(`<@${message.author.id}> ${text}`);
                 setTimeout(() => reply.delete().catch(() => { }), 5000);
             };
-                      // === GABUNG KE VOICE CHANNEL ===
+            // === GABUNG KE VOICE CHANNEL ===
             if (/(sini|gabung|masuk|join|ke sini|kemari)/i.test(contentLower)) {
                 const vc = message.member.voice.channel;
-                if (!vc) return message.reply('kamu harus masuk voice channel dulu bro');
+                if (!vc) return autoReply('kamu harus masuk voice channel dulu bro');
                 const botVc = message.guild.members.me.voice.channel;
-                if (botVc && botVc.id === vc.id) return message.reply(`gue udah di **${vc.name}** bro 😎`);
+                if (botVc && botVc.id === vc.id) return autoReply(`gue udah di **${vc.name}** bro 😎`);
                 joinVoiceChannel({ channelId: vc.id, guildId: message.guild.id, adapterCreator: message.guild.voiceAdapterCreator, selfDeaf: false });
-                return message.reply(`sip gue gabung ke **${vc.name}** 🎙️`);
+                return autoReply(`sip gue gabung ke **${vc.name}** 🎙️`);
             }
 
             // === PUTAR MUSIK ===
