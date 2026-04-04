@@ -260,7 +260,7 @@ module.exports = {
             // === AJAK MAIN ===
             if (/(ajakin|ajak|nyariin|nyari|panggilin|panggil)/i.test(contentLower)) {
                 const targetUser = message.mentions.users.filter(u => !u.bot).first();
-                if (!targetUser) return message.reply('tag dulu siapa yang mau diajak, contoh: `@bot ajakin @teman main Valorant`');
+                if (!targetUser) return autoReply('tag dulu siapa yang mau diajak, contoh: `@bot ajakin @teman main Valorant`');
                 const mainIndex = contentLower.indexOf('main');
                 const gameName = mainIndex !== -1
                     ? message.content.slice(mainIndex + 5).replace(/<[^>]+>/g, '').trim()
@@ -278,9 +278,9 @@ module.exports = {
                         .setFooter({ text: `Hubungi balik ${message.author.username} di server!` })
                         .setTimestamp();
                     await targetUser.send({ embeds: [dmEmbed] });
-                    return message.reply(`sip! udah gue DM-in **${targetUser.username}** buat diajak main **${gameName || 'game'}** 🎮`);
+                    return autoReply(`sip! udah gue DM-in **${targetUser.username}** buat diajak main **${gameName || 'game'}** 🎮`);
                 } catch (err) {
-                    return message.reply(err.code === 50007
+                    return autoReply(err.code === 50007
                         ? `gagal DM **${targetUser.username}**, DM-nya dikunci`
                         : 'ada error nih, coba lagi');
                 }
@@ -289,7 +289,7 @@ module.exports = {
             // === DM TEMAN ===
             if (/(dm|kirimin pesan|kasih tau|pesan ke|pm)/i.test(contentLower)) {
                 const targetUser = message.mentions.users.filter(u => !u.bot && u.id !== message.author.id).first();
-                if (!targetUser) return message.reply('tag dulu siapa yang mau di-DM, contoh: `@bot dm @teman hai bro lagi apa?`');
+                if (!targetUser) return autoReply('tag dulu siapa yang mau di-DM, contoh: `@bot dm @teman hai bro lagi apa?`');
 
                 // Ambil isi pesan (buang semua mention dan keyword)
                 const pesanDM = message.content
@@ -297,7 +297,7 @@ module.exports = {
                     .replace(/(dm|kirimin pesan|kasih tau|pesan ke|pm)/i, '') // buang keyword
                     .trim();
 
-                if (!pesanDM) return message.reply('isi pesannya dong, contoh: `@bot dm @teman hai lagi apa?`');
+                if (!pesanDM) return autoReply('isi pesannya dong, contoh: `@bot dm @teman hai lagi apa?`');
 
                 try {
                     const dmEmbed = new EmbedBuilder()
@@ -313,9 +313,9 @@ module.exports = {
                         .setTimestamp();
 
                     await targetUser.send({ embeds: [dmEmbed] });
-                    return message.reply(`✅ pesan udah dikirim ke **${targetUser.username}**!`);
+                    return autoReply(`✅ pesan udah dikirim ke **${targetUser.username}**!`);
                 } catch (err) {
-                    return message.reply(err.code === 50007
+                    return autoReply(err.code === 50007
                         ? `❌ gagal DM **${targetUser.username}**, DM-nya dikunci nih`
                         : 'ada error, coba lagi bang');
                 }
