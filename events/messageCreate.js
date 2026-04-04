@@ -121,120 +121,116 @@ module.exports = {
 
             // Helper: hapus pesan user + kirim konfirmasi yang auto-delete
             const autoReply = async (text) => {
-                await message.delete().catch(() => {});
+                await message.delete().catch(() => { });
                 const reply = await message.channel.send(`<@${message.author.id}> ${text}`);
-                setTimeout(() => reply.delete().catch(() => {}), 5000);
+                setTimeout(() => reply.delete().catch(() => { }), 5000);
             };
-
-            // === GABUNG KE VOICE CHANNEL ===
+                      // === GABUNG KE VOICE CHANNEL ===
             if (/(sini|gabung|masuk|join|ke sini|kemari)/i.test(contentLower)) {
                 const vc = message.member.voice.channel;
-                if (!vc) return autoReply('kamu harus masuk voice channel dulu bro');
+                if (!vc) return message.reply('kamu harus masuk voice channel dulu bro');
                 const botVc = message.guild.members.me.voice.channel;
-                if (botVc && botVc.id === vc.id) return autoReply(`gue udah di **${vc.name}** bro 😎`);
+                if (botVc && botVc.id === vc.id) return message.reply(`gue udah di **${vc.name}** bro 😎`);
                 joinVoiceChannel({ channelId: vc.id, guildId: message.guild.id, adapterCreator: message.guild.voiceAdapterCreator, selfDeaf: false });
-                return autoReply(`sip gue gabung ke **${vc.name}** 🎙️`);
+                return message.reply(`sip gue gabung ke **${vc.name}** 🎙️`);
             }
 
             // === PUTAR MUSIK ===
             if (/(putar|play|musik|lagu|cari)/i.test(contentLower)) {
                 const vc = message.member.voice.channel;
-                if (!vc) return autoReply('masuk voice channel dulu bro baru minta lagu');
+                if (!vc) return message.reply('masuk voice channel dulu bro baru minta lagu');
                 const query = message.content
                     .replace(/<@!?\d+>/g, '').replace(/(putar|play|musik|lagu|cari)/i, '').trim();
-                if (!query) return autoReply('mau putar lagu apa? contoh: `@bot putar Hindia`');
-                await message.delete().catch(() => {});
+                if (!query) return message.reply('mau putar lagu apa? contoh: `@bot putar Hindia`');
                 try {
                     const res = await client.player.play(vc, query, {
                         nodeOptions: { leaveOnEmpty: false, leaveOnEnd: false, leaveOnStop: false, metadata: message }
                     });
-                    const r = await message.channel.send(`<@${message.author.id}> numpang ngamen bawain lagu **${res.track.title}** 🎵`);
-                    setTimeout(() => r.delete().catch(() => {}), 5000);
-                    return;
+                    return message.reply(`numpang ngamen bawain lagu **${res.track.title}** 🎵`);
                 } catch (e) {
-                    return autoReply(`gagal putar lagu: ${e.message}`);
+                    return message.reply(`gagal putar lagu: ${e.message}`);
                 }
             }
 
             // === STOP MUSIK ===
             if (/(stop|berhenti|cabut|udahan)/i.test(contentLower)) {
                 const queue = useQueue(message.guild.id);
-                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                if (!queue || !queue.isPlaying()) return message.reply('ga ada lagu yang lagi diputar bro');
                 queue.tracks.clear();
                 queue.node.stop();
-                return autoReply('oke lagunya distop 🎵');
+                return message.reply('oke lagunya distop 🎵');
             }
 
             // === SKIP LAGU ===
             if (/(skip|lewatin|next|lanjut)/i.test(contentLower)) {
                 const queue = useQueue(message.guild.id);
-                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                if (!queue || !queue.isPlaying()) return message.reply('ga ada lagu yang lagi diputar bro');
                 queue.node.skip();
-                return autoReply('⏭️ oke dilangkahi lagunya!');
+                return message.reply('⏭️ oke dilangkahi lagunya!');
             }
 
             // === PAUSE ===
             if (/(pause|tahan|jeda)/i.test(contentLower)) {
                 const queue = useQueue(message.guild.id);
-                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
-                if (queue.node.isPaused()) return autoReply('udah di-pause bro');
+                if (!queue || !queue.isPlaying()) return message.reply('ga ada lagu yang lagi diputar bro');
+                if (queue.node.isPaused()) return message.reply('udah di-pause bro');
                 queue.node.pause();
-                return autoReply('⏸️ lagu di-pause');
+                return message.reply('⏸️ lagu di-pause');
             }
 
             // === RESUME ===
             if (/(resume|lanjutin|terusin|lanjutkan)/i.test(contentLower)) {
                 const queue = useQueue(message.guild.id);
-                if (!queue) return autoReply('ga ada lagu bro');
-                if (!queue.node.isPaused()) return autoReply('lagunya lagi jalan bro');
+                if (!queue) return message.reply('ga ada lagu bro');
+                if (!queue.node.isPaused()) return message.reply('lagunya lagi jalan bro');
                 queue.node.resume();
-                return autoReply('▶️ lanjut ngamen lagi!');
+                return message.reply('▶️ lanjut ngamen lagi!');
             }
 
             // === VOLUME ===
             const volMatch = contentLower.match(/volume\s*(\d+)/);
             if (volMatch) {
                 const queue = useQueue(message.guild.id);
-                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                if (!queue || !queue.isPlaying()) return message.reply('ga ada lagu yang lagi diputar bro');
                 const vol = Math.min(100, Math.max(1, parseInt(volMatch[1])));
                 queue.node.setVolume(vol);
                 const emoji = vol > 66 ? '🔊' : vol > 33 ? '🔉' : '🔈';
-                return autoReply(`${emoji} volume diset ke **${vol}%**`);
+                return message.reply(`${emoji} volume diset ke **${vol}%**`);
             }
 
             // === ANTRIAN / QUEUE ===
             if (/(antrian|queue|list lagu|daftar lagu)/i.test(contentLower)) {
                 const queue = useQueue(message.guild.id);
-                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                if (!queue || !queue.isPlaying()) return message.reply('ga ada lagu yang lagi diputar bro');
                 const tracks = queue.tracks.toArray();
                 const cur = queue.currentTrack;
                 const list = tracks.length > 0
                     ? tracks.slice(0, 10).map((t, i) => `\`${i + 1}.\` **${t.title}**`).join('\n')
                     : '*tidak ada antrian*';
-                return autoReply(`🎵 **Sekarang:** ${cur.title}\n\n📋 **Antrian:**\n${list}`);
+                return message.reply(`🎵 **Sekarang:** ${cur.title}\n\n📋 **Antrian:**\n${list}`);
             }
 
             // === NOWPLAYING ===
             if (/(lagu apa|lagi play|putar apa|nowplaying|sekarang)/i.test(contentLower)) {
                 const queue = useQueue(message.guild.id);
-                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                if (!queue || !queue.isPlaying()) return message.reply('ga ada lagu yang lagi diputar bro');
                 const track = queue.currentTrack;
-                return autoReply(`🎵 Lagi putar: **${track.title}** - ${track.author} (${track.duration})`);
+                return message.reply(`🎵 Lagi putar: **${track.title}** - ${track.author} (${track.duration})`);
             }
 
             // === LOOP ===
             if (/(loop|ulangin|repeat)/i.test(contentLower)) {
                 const queue = useQueue(message.guild.id);
-                if (!queue || !queue.isPlaying()) return autoReply('ga ada lagu yang lagi diputar bro');
+                if (!queue || !queue.isPlaying()) return message.reply('ga ada lagu yang lagi diputar bro');
                 if (queue.repeatMode === QueueRepeatMode.OFF) {
                     queue.setRepeatMode(QueueRepeatMode.TRACK);
-                    return autoReply('🔂 loop 1 lagu aktif!');
+                    return message.reply('🔂 loop 1 lagu aktif!');
                 } else if (queue.repeatMode === QueueRepeatMode.TRACK) {
                     queue.setRepeatMode(QueueRepeatMode.QUEUE);
-                    return autoReply('🔁 loop semua antrian aktif!');
+                    return message.reply('🔁 loop semua antrian aktif!');
                 } else {
                     queue.setRepeatMode(QueueRepeatMode.OFF);
-                    return autoReply('🚫 loop dimatiin');
+                    return message.reply('🚫 loop dimatiin');
                 }
             }
 
@@ -255,9 +251,9 @@ module.exports = {
                 if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages))
                     return autoReply('kamu ga punya izin hapus pesan bro');
                 const amount = Math.min(100, parseInt(hapusMatch[2]));
-                await message.channel.bulkDelete(amount + 1, true).catch(() => {});
+                await message.channel.bulkDelete(amount + 1, true).catch(() => { });
                 const notif = await message.channel.send(`✅ ${amount} pesan berhasil dihapus`);
-                setTimeout(() => notif.delete().catch(() => {}), 3000);
+                setTimeout(() => notif.delete().catch(() => { }), 3000);
                 return;
             }
 
@@ -357,7 +353,7 @@ module.exports = {
                     voiceStateEvent.getPrivateChannels().set(privateChannel.id, { ownerId: requester.id, createdAt: Date.now() });
 
                     if (requester.voice.channel) {
-                        await requester.voice.setChannel(privateChannel).catch(() => {});
+                        await requester.voice.setChannel(privateChannel).catch(() => { });
                     }
 
                     const inviteNames = [];
@@ -365,11 +361,11 @@ module.exports = {
                         inviteNames.push(member.user.username);
                         try {
                             await member.send(`🔒 **${message.author.username}** mengundang kamu ke **Private Room** di server **${message.guild.name}**!\nMasuk ke channel: **${privateChannel.name}**`);
-                        } catch {}
+                        } catch { }
                     }
 
                     const siapa = inviteNames.length > 0 ? `bersama ${inviteNames.join(', ')}` : 'tanpa undangan tambahan';
-                    return autoReply(`🔒 private room **${privateChannel.name}** udah dibuat ${siapa}! langsung masuk aja.`);
+                    return autoReply(`private room **${privateChannel.name}** udah dibuat ${siapa}! langsung masuk aja.`);
                 } catch (err) {
                     console.error('[PrivateVC] Gagal buat private room:', err.message);
                     return autoReply('gagal buat private room, pastiin bot punya izin Manage Channels');
