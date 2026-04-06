@@ -266,18 +266,7 @@ module.exports = {
                     ? message.content.slice(mainIndex + 5).replace(/<[^>]+>/g, '').trim()
                     : 'game';
                 try {
-                    const dmEmbed = new EmbedBuilder()
-                        .setColor(0x5865F2)
-                        .setTitle('🎮 Ada yang Nyariin Kamu!')
-                        .setDescription(`**${message.author.username}** lagi nyariin kamu buat main bareng!`)
-                        .addFields(
-                            { name: '🎯 Game', value: `**${gameName || 'game'}**`, inline: true },
-                            { name: '🏠 Server', value: message.guild.name, inline: true }
-                        )
-                        .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
-                        .setFooter({ text: `Hubungi balik ${message.author.username} di server!` })
-                        .setTimestamp();
-                    await targetUser.send({ embeds: [dmEmbed] });
+                    await targetUser.send(`🎮 **${message.author.username}** dari server **${message.guild.name}** lagi nyariin kamu buat main bareng **${gameName || 'game'}**!`);
                     return autoReply(`sip! udah gue DM-in **${targetUser.username}** buat diajak main **${gameName || 'game'}** 🎮`);
                 } catch (err) {
                     return autoReply(err.code === 50007
@@ -300,19 +289,7 @@ module.exports = {
                 if (!pesanDM) return autoReply('isi pesannya dong, contoh: `@bot dm @teman hai lagi apa?`');
 
                 try {
-                    const dmEmbed = new EmbedBuilder()
-                        .setColor(0x5865F2)
-                        .setTitle('📨 Ada Pesan Buat Kamu!')
-                        .setDescription(pesanDM)
-                        .addFields(
-                            { name: '👤 Dari', value: `${message.author.username}`, inline: true },
-                            { name: '🏠 Server', value: message.guild.name, inline: true }
-                        )
-                        .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
-                        .setFooter({ text: 'Pesan dikirim via bot' })
-                        .setTimestamp();
-
-                    await targetUser.send({ embeds: [dmEmbed] });
+                    await targetUser.send(`📨 Pesan dari **${message.author.username}** (Server: **${message.guild.name}**):\n\n${pesanDM}`);
                     return autoReply(`✅ pesan udah dikirim ke **${targetUser.username}**!`);
                 } catch (err) {
                     return autoReply(err.code === 50007
