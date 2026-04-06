@@ -321,19 +321,19 @@ module.exports = {
                     .replace(/<@!?\d+>/g, '') // buang semua mention
                     .replace(/(buat|bikin|private|room|kamar|vc privat|private room|private vc|ruangan)/ig, '') // buang kata kunci
                     .trim();
-                
+
                 if (!customName) {
                     customName = `room-${requester.user.username}`;
                 }
 
                 try {
                     const privateChannel = await message.guild.channels.create({
-                        name: `🔒 ${customName}`,
+                        name: `${customName}`,
                         type: ChannelType.GuildVoice,
                         parent: requester.voice.channel?.parentId || null,
                         permissionOverwrites,
                         userLimit: 1 + invitedMembers.size,
-                        reason: 'Private room dibuat via bot',
+                        reason: 'Room dibuat admin',
                     });
 
                     voiceStateEvent.getPrivateChannels().set(privateChannel.id, { ownerId: requester.id, createdAt: Date.now() });
@@ -358,7 +358,7 @@ module.exports = {
                         inviteNames.push(member.user.username);
                         try {
                             const msgLink = inviteUrl ? `\n\nKlik link ini untuk langsung bergabung: ${inviteUrl}` : '';
-                            await member.send(`🔒 **${message.author.username}** mengundang kamu ke **Private Room** di server **${message.guild.name}**!\nMasuk ke nama channel: **${privateChannel.name}**${msgLink}`);
+                            await member.send(`**${message.author.username}** mengundang kamu ke **Private Room** di server **${message.guild.name}**!\nMasuk ke nama channel: **${privateChannel.name}**${msgLink}`);
                         } catch { }
                     }
 
@@ -371,12 +371,9 @@ module.exports = {
             }
 
             // Jika tidak ada keyword yang cocok
-            return autoReply('hm? mau suruh gue ngapain? 🤔 bilang yang jelas dong, contoh: `@bot putar Hindia` atau `@bot sini`');
+            return autoReply('hm? mau suruh gue ngapain? bilang yang jelas dong, contoh: `@bot putar Hindia` atau `@bot sini`');
         }
 
-        // =====================================================
-        // CEK PHISHING TERLEBIH DAHULU (prioritas lebih tinggi)
-        // =====================================================
         const isPhishing = phishingPatterns.some(pattern => pattern.test(message.content));
 
         if (isPhishing) {
@@ -416,28 +413,24 @@ module.exports = {
             return; // Berhenti, tidak perlu cek badword lagi
         }
 
-        // =====================================================
-        // CEK KATA KASAR
-        // =====================================================
         const foundWord = badWords.find(word => contentLower.includes(word));
 
         if (foundWord) {
             try {
-                // Cek dulu apakah bot punya izin Manage Messages di channel ini
                 const botMember = message.guild.members.me;
                 const hasPermission = message.channel
                     .permissionsFor(botMember)
                     .has('ManageMessages');
 
                 if (!hasPermission) {
-                    console.error(`[BadWord] ❌ Bot tidak punya izin 'Manage Messages' di #${message.channel.name}! Silakan cek role bot di Discord.`);
+                    console.error(`[BadWord] Bot tidak punya izin 'Manage Messages' di #${message.channel.name}! Silakan cek role bot di Discord.`);
                 } else {
                     // Hapus pesan kata kasar
                     await message.delete().catch(err => {
                         if (err.code === 10008) return; // pesan sudah dihapus lebih dulu
                         console.error('[BadWord] Gagal hapus pesan (code ' + err.code + '):', err.message);
                     });
-                    console.log(`[BadWord] ✅ Pesan dari ${message.author.tag} dihapus. Kata: "${foundWord}"`);
+                    console.log(`[BadWord] Pesan dari ${message.author.tag} dihapus. Kata: "${foundWord}"`);
                 }
                 // Tambah hitungan peringatan
                 const userId = message.author.id;
@@ -453,7 +446,7 @@ module.exports = {
                     description = `Ini ke-**${currentWarnings}**. sekali lagi anda dijemput!`;
                 } else if (currentWarnings === 2) {
                     color = 0xFF8C00;
-                    title = '⚠️ yo yo yo udah 2 kali ye';
+                    title = 'yo yo yo udah 2 kali ye';
                     description = `udah **2 kali**. sekali lagi anda dijemput!`;
                 } else {
                     color = 0xFFD700;
