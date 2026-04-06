@@ -340,9 +340,18 @@ module.exports = {
                     });
                 });
 
+                let customName = message.content
+                    .replace(/<@!?\d+>/g, '') // buang semua mention
+                    .replace(/(buat|bikin|private|room|kamar|vc privat|private room|private vc|ruangan)/ig, '') // buang kata kunci
+                    .trim();
+                
+                if (!customName) {
+                    customName = `room-${requester.user.username}`;
+                }
+
                 try {
                     const privateChannel = await message.guild.channels.create({
-                        name: `🔒 room-${requester.user.username}`,
+                        name: `🔒 ${customName}`,
                         type: ChannelType.GuildVoice,
                         parent: requester.voice.channel?.parentId || null,
                         permissionOverwrites,
