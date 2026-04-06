@@ -283,7 +283,7 @@ module.exports = {
                 // Ambil isi pesan (buang semua mention dan keyword)
                 const pesanDM = message.content
                     .replace(/<@!?\d+>/g, '')  // buang semua mention
-                    .replace(/(dm|kirimin pesan|kasih tau|pesan ke|pm)/i, '') // buang keyword
+                    .replace(/(dm|kirimin pesan|kasih tau|pesan ke|pm)\s*(ke|si|buat)?/ig, '') // buang keyword dan kata sambung
                     .trim();
 
                 if (!pesanDM) return autoReply('isi pesannya dong, contoh: `@bot dm @teman hai lagi apa?`');
