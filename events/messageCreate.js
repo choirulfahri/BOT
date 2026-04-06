@@ -356,11 +356,23 @@ module.exports = {
                         await requester.voice.setChannel(privateChannel).catch(() => { });
                     }
 
+                    let inviteUrl = '';
+                    try {
+                        const invite = await privateChannel.createInvite({
+                            maxAge: 0, // Tidak expired sampai channel terhapus
+                            maxUses: 0 // Unlimited atau bisa sesuai jumlah yg diinvite
+                        });
+                        inviteUrl = invite.url;
+                    } catch (err) {
+                        console.error('[PrivateVC] Gagal buat invite link:', err.message);
+                    }
+
                     const inviteNames = [];
                     for (const [, member] of invitedMembers) {
                         inviteNames.push(member.user.username);
                         try {
-                            await member.send(`🔒 **${message.author.username}** mengundang kamu ke **Private Room** di server **${message.guild.name}**!\nMasuk ke channel: **${privateChannel.name}**`);
+                            const msgLink = inviteUrl ? `\n\nKlik link ini untuk langsung bergabung: ${inviteUrl}` : '';
+                            await member.send(`🔒 **${message.author.username}** mengundang kamu ke **Private Room** di server **${message.guild.name}**!\nMasuk ke nama channel: **${privateChannel.name}**${msgLink}`);
                         } catch { }
                     }
 
