@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -22,6 +22,7 @@ module.exports = {
         const game = interaction.options.getString('game');
         const pesanTambahan = interaction.options.getString('pesan');
         const sender = interaction.user;
+        const voiceChannel = interaction.member?.voice?.channel;
 
         // Jangan bisa ajak diri sendiri
         if (targetUser.id === sender.id) {
@@ -39,11 +40,31 @@ module.exports = {
             });
         }
 
+        let components = [];
+        let description = `**${sender.username}** lagi nyariin kamu buat main bareng nih!`;
+
+        if (voiceChannel) {
+            try {
+                // Buat invite link ke channel voice
+                const invite = await voiceChannel.createInvite({ maxAge: 86400, maxUses: 0 }); // Kadaluarsa dalam 1 hari
+                description += `\n\nDia udah nunggu di voice channel **${voiceChannel.name}**, gasken klik tombol di bawah buat langsung join!`;
+                
+                const joinButton = new ButtonBuilder()
+                    .setLabel('Join Voice Room')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(invite.url);
+                    
+                components.push(new ActionRowBuilder().addComponents(joinButton));
+            } catch (err) {
+                console.error('[Ajak] Gagal bikin invite link:', err);
+            }
+        }
+
         // Buat embed DM untuk target user
         const dmEmbed = new EmbedBuilder()
             .setColor(0x5865F2)
             .setTitle('🎮 Ada yang Nyariin Kamu!')
-            .setDescription(`**${sender.username}** lagi nyariin kamu buat main bareng nih!`)
+            .setDescription(description)
             .addFields(
                 { name: '🎯 Game', value: `**${game}**`, inline: true },
                 { name: '🏠 Server', value: interaction.guild.name, inline: true },
@@ -59,13 +80,13 @@ module.exports = {
 
         // Coba kirim DM ke target user
         try {
-            await targetUser.send({ embeds: [dmEmbed] });
+            await targetUser.send({ embeds: [dmEmbed], components: components });
 
             // Balas ke user yang ngirim command
             const successEmbed = new EmbedBuilder()
                 .setColor(0x57F287) // Hijau
                 .setTitle('✅ Pesan Terkirim!')
-                .setDescription(`Bot udah ngasih tau **${targetUser.username}** bahwa kamu nyariin dia buat main **${game}**!`)
+                .setDescription(`Bot udah ngasih tau **${targetUser.username}** bahwa kamu nyariin dia buat main **${game}**!${voiceChannel ? ` (Link ke **${voiceChannel.name}** udah dikirim juga)` : ''}`)
                 .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
                 .setTimestamp();
 
@@ -77,7 +98,7 @@ module.exports = {
                 .setDescription(`🎮 <@${sender.id}> lagi nyariin <@${targetUser.id}> buat main **${game}**! ${pesanTambahan ? `\n💬 *"${pesanTambahan}"*` : ''}`)
                 .setTimestamp();
 
-            await interaction.channel.send({ embeds: [publicEmbed] });
+            await interaction.channel.send({ embeds: [publicEmbed], components: components });
 
         } catch (error) {
             // Jika target user menonaktifkan DM
