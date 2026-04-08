@@ -63,6 +63,7 @@ client.player.events.on("playerError", (queue, error) => {
 
     // Load semua default extractors (YouTube, Spotify, SoundCloud, dll)
     await client.player.extractors.loadMulti(DefaultExtractors);
+    await client.player.extractors.loadDefault((ext) => !['YouTubeExtractor'].includes(ext));
 
     // Setup Spotify credentials jika tersedia
     if (process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET) {
