@@ -1,7 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { useQueue } = require("discord-player");
-const Genius = require("genius-lyrics");
-const client = new Genius.Client();
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -25,68 +23,83 @@ module.exports = {
         if (!queue || !queue.isPlaying()) {
           return await interaction.editReply({
             content:
-              "Gak ada lagu yang diputar kak. Pakai `/lirik [judul]` untuk cari lirik",
+              "Gak ada lagu yang diputar kak. Pakai `/lirik [judul]` untuk cari lirik 🎵",
           });
         }
         songTitle = queue.currentTrack.title;
       }
 
-      // Search lirik
-      const songs = await client.songs.search(songTitle);
+      // Try Genius API with fallback
+      try {
+        const Genius = require("genius-lyrics");
+        const client = new Genius.Client();
 
-      if (!songs || songs.length === 0) {
-        return await interaction.editReply({
-          content: `Maaf kak lirik **${songTitle}** tidak ketemu di Genius`,
+        const songs = await client.songs.search(songTitle);
+
+        if (!songs || songs.length === 0) {
+          throw new Error("Lirik tidak ketemu");
+        }
+
+        const song = songs[0];
+        const lyrics = await song.lyrics();
+
+        const chunks = [];
+        let chunk = "";
+
+        for (const line of lyrics.split("\n")) {
+          if ((chunk + line + "\n").length > 2000) {
+            chunks.push(chunk);
+            chunk = line + "\n";
+          } else {
+            chunk += line + "\n";
+          }
+        }
+        if (chunk) chunks.push(chunk);
+
+        const embeds = chunks.map((text, index) => {
+          return new EmbedBuilder()
+            .setColor(0xffd700)
+            .setAuthor({
+              name: `🎤 ${song.artist.name}`,
+              iconURL: song.artist.image,
+            })
+            .setTitle(`[${index + 1}/${chunks.length}] ${song.title}`)
+            .setDescription(text)
+            .setURL(song.url)
+            .setThumbnail(song.image)
+            .setFooter({ text: "Powered by Genius.com" });
         });
-      }
 
-      const song = songs[0];
-      const lyrics = await song.lyrics();
+        await interaction.editReply({ embeds: [embeds[0]] });
 
-      // Split lyrics jika terlalu panjang (Discord embed max 4096 chars)
-      const chunks = [];
-      let chunk = "";
-
-      for (const line of lyrics.split("\n")) {
-        if ((chunk + line + "\n").length > 2000) {
-          chunks.push(chunk);
-          chunk = line + "\n";
-        } else {
-          chunk += line + "\n";
+        if (embeds.length > 1) {
+          for (let i = 1; i < embeds.length; i++) {
+            await interaction.followUp({ embeds: [embeds[i]] });
+          }
         }
-      }
-      if (chunk) chunks.push(chunk);
+      } catch (geniusError) {
+        // Fallback: Berikan link untuk cari lirik
+        console.warn("[Lirik] Genius API tidak tersedia, pakai fallback");
 
-      // Buat embed untuk setiap chunk
-      const embeds = chunks.map((text, index) => {
+        const searchUrl = `https://genius.com/search?q=${encodeURIComponent(songTitle)}`;
+        const googleUrl = `https://www.google.com/search?q=%22${encodeURIComponent(songTitle)}%22+lirik`;
+
         const embed = new EmbedBuilder()
-          .setColor(0xffd700) // Gold ala Genius
-          .setAuthor({
-            name: `🎤 ${song.artist.name}`,
-            iconURL: song.artist.image,
-          })
-          .setTitle(`[${index + 1}/${chunks.length}] ${song.title}`)
-          .setDescription(text)
-          .setURL(song.url)
-          .setThumbnail(song.image)
-          .setFooter({ text: "Powered by Genius.com" });
+          .setColor(0xffd700)
+          .setTitle(`🎤 ${songTitle}`)
+          .setDescription(
+            `Lirik tidak bisa ditampilkan langsung. Buka link di bawah ini:\n\n` +
+              `🔗 [Genius](${searchUrl})\n` +
+              `🔗 [Google](${googleUrl})`,
+          )
+          .setFooter({ text: "Klik salah satu link untuk lirik lengkap" });
 
-        return embed;
-      });
-
-      // Kirim embed pertama
-      await interaction.editReply({ embeds: [embeds[0]] });
-
-      // Jika ada lebih dari 1 embed, kirim yang lain di reply
-      if (embeds.length > 1) {
-        for (let i = 1; i < embeds.length; i++) {
-          await interaction.followUp({ embeds: [embeds[i]] });
-        }
+        await interaction.editReply({ embeds: [embed] });
       }
     } catch (error) {
       console.error("[Lirik] Error:", error.message);
       await interaction.editReply({
-        content: `Error saat mencari lirik: ${error.message}`,
+        content: `❌ Error: ${error.message}`,
       });
     }
   },
