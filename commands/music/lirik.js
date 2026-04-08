@@ -25,7 +25,7 @@ module.exports = {
         if (!queue || !queue.isPlaying()) {
           return await interaction.editReply({
             content:
-              "Gak ada lagu yang diputar kak. Pakai `/lirik [judul]` untuk cari lirik 🎵",
+              "Gak ada lagu yang diputar kak. Pakai `/lirik [judul]` untuk cari lirik",
           });
         }
         songTitle = queue.currentTrack.title;
@@ -36,7 +36,7 @@ module.exports = {
 
       if (!songs || songs.length === 0) {
         return await interaction.editReply({
-          content: `Maaf kak lirik **${songTitle}** tidak ketemu di Genius 😭`,
+          content: `Maaf kak lirik **${songTitle}** tidak ketemu di Genius`,
         });
       }
 

@@ -321,6 +321,40 @@ module.exports = {
         }
       }
 
+      // === LIRIK ===
+      if (/(lirik|lyrics|kata-kata)/i.test(contentLower)) {
+        const queue = useQueue(message.guild.id);
+        if (!queue || !queue.isPlaying()) {
+          return message.reply(
+            "Kak gak ada lagu yang diputar untuk cari lirik ",
+          );
+        }
+        const track = queue.currentTrack;
+        return message.reply(
+          `Untuk lirik lagu **${track.title}**, gunakan command /lirik ya kak! (atau mention aku dengan 'lirik')`,
+        );
+      }
+
+      // === SEARCH LAGU ===
+      if (/(cari|search|nyari)/i.test(contentLower)) {
+        const vc = message.member.voice.channel;
+        if (!vc) {
+          return message.reply("Kak masuk voice channel dulu ya!");
+        }
+        const query = message.content
+          .replace(/<@!?\d+>/g, "")
+          .replace(/(cari|search|nyari)/i, "")
+          .trim();
+        if (!query) {
+          return message.reply(
+            "Mau cari lagu apa kak? Contoh: `tag aku cari Kaela`",
+          );
+        }
+        return message.reply(
+          `Untuk cari lagu dengan dropdown, gunakan command /cari ${query} ya kak! 🎵`,
+        );
+      }
+
       // === KICK USER ===
       if (/(kick|keluarin|usir)/i.test(contentLower)) {
         if (
