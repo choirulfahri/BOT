@@ -1,6 +1,20 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { useQueue } = require("discord-player");
 
+function createProgressBar(current, total) {
+  const percentage = (current / total) * 100;
+  const bars = Math.round(percentage / 5);
+  const empty = 20 - bars;
+  return `${"▰".repeat(bars)}${"▱".repeat(empty)} ${Math.floor(percentage)}%`;
+}
+
+function formatTime(ms) {
+  const seconds = Math.floor(ms / 1000);
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("nowplaying")
@@ -15,17 +29,25 @@ module.exports = {
     }
 
     const track = queue.currentTrack;
-    const progress = queue.node.createProgressBar();
+    const progress = queue.node.getTimestamp();
 
     const embed = new EmbedBuilder()
-      .setColor(0x1db954) // Hijau ala Spotify
+      .setColor(0xff0000) // Merah ala YouTube Music
       .setTitle("🎵 Lagi Diputar Sekarang")
       .setDescription(`**[${track.title}](${track.url})**`)
       .addFields(
-        { name: "Artis", value: track.author || "Unknown", inline: true },
-        { name: "Durasi", value: track.duration, inline: true },
         {
-          name: "Loop",
+          name: "👤 Artis",
+          value: track.author || "Unknown",
+          inline: true,
+        },
+        {
+          name: "⏱️ Durasi",
+          value: track.duration || "Unknown",
+          inline: true,
+        },
+        {
+          name: "🔁 Loop",
           value:
             queue.repeatMode === 0
               ? "Off"
@@ -35,8 +57,17 @@ module.exports = {
           inline: true,
         },
       )
+      .addFields({
+        name: "📊 Progress",
+        value:
+          `${createProgressBar(progress.current, progress.total)}\n` +
+          `${formatTime(progress.current)} / ${formatTime(progress.total)}`,
+        inline: false,
+      })
       .setThumbnail(track.thumbnail)
-      .addFields({ name: "Progress", value: progress || "Loading..." })
+      .setFooter({
+        text: `📝 Queue: ${queue.tracks.size} lagu • ${queue.node.isPaused() ? "⏸️ PAUSED" : "▶️ PLAYING"}`,
+      })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });
