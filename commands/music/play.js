@@ -4,7 +4,7 @@ const { useQueue } = require("discord-player");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("musik")
-    .setDescription("")
+    .setDescription("Putar musik dari youtube")
     .addStringOption((option) =>
       option.setName("lagu").setDescription("Judul Lagu kak").setRequired(true),
     ),
