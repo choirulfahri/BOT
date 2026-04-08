@@ -61,9 +61,19 @@ client.player.events.on("playerError", (queue, error) => {
   try {
     const { DefaultExtractors } = require("@discord-player/extractor");
 
+    try {
+      const { YoutubeiExtractor } = require("discord-player-youtubei");
+      await client.player.extractors.register(YoutubeiExtractor, {});
+      console.log("[Musik] YoutubeiExtractor berhasil dimuat.");
+    } catch (err) {
+      console.warn("[Musik] YoutubeiExtractor gagal dimuat:", err.message);
+    }
+
     // Load semua default extractors (YouTube, Spotify, SoundCloud, dll)
     await client.player.extractors.loadMulti(DefaultExtractors);
-    await client.player.extractors.loadDefault((ext) => !['YouTubeExtractor'].includes(ext));
+    await client.player.extractors.loadDefault(
+      (ext) => !["YouTubeExtractor"].includes(ext),
+    );
 
     // Setup Spotify credentials jika tersedia
     if (process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET) {
