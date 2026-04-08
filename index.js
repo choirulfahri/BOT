@@ -1,4 +1,7 @@
 require("dotenv").config();
+// Paksa discord-player menggunakan module 'youtube-ext' atau 'play-dl' karena YoutubeJS/ytdl-core sedang usang/diblokir (mengatasi bug 'berhasil mencari tetapi tidak ada suaranya').
+process.env.DP_FORCE_YTDL_MOD = "youtube-ext";
+
 const fs = require("node:fs");
 const path = require("node:path");
 const {
@@ -62,23 +65,12 @@ client.player.events.on("playerError", (queue, error) => {
     const { DefaultExtractors } = require("@discord-player/extractor");
 
     try {
-      const { YoutubeiExtractor } = require("discord-player-youtubei");
-      await client.player.extractors.register(YoutubeiExtractor, {});
-      console.log("[Musik] YoutubeiExtractor (youtubei) berhasil dimuat.");
-    } catch (err) {
-      console.warn("[Musik] YoutubeiExtractor gagal dimuat:", err.message);
-    }
-
-    try {
-      // Alternatif YouTube extractor (jika Youtubei gagal memainkan video)
+      // YouTube extractor bawaan default (akan otomatis bridge ke youtube-ext/play-dl)
       const { YoutubeExtractor } = require("discord-player-youtube");
       await client.player.extractors.register(YoutubeExtractor, {});
-      console.log("[Musik] YoutubeExtractor alternatif berhasil dimuat.");
+      console.log("[Musik] YoutubeExtractor berhasil dimuat.");
     } catch (err) {
-      console.warn(
-        "[Musik] YoutubeExtractor alternatif gagal dimuat:",
-        err.message,
-      );
+      console.warn("[Musik] YoutubeExtractor gagal dimuat:");
     }
 
     // Load semua default extractors (YouTube, Spotify, SoundCloud, dll)
