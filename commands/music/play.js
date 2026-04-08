@@ -170,8 +170,7 @@ module.exports = {
 
       if (e.message.includes("No results")) {
         errorMsg = isLinkQuery
-          ? `Link tidak valid atau tidak bisa dimainkan kak \n\nCoba:\n• Pastikan link publik (tidak private)\n• Coba judul lagu dengan ` /
-            musik[judul]`\n• Atau pakai link yang lain`
+          ? `Link tidak valid atau tidak bisa dimainkan kak \n\nCoba:\n• Pastikan link publik (tidak private)\n• Coba judul lagu dengan \`/musik [judul]\`\n• Atau pakai link yang lain`
           : `Lagu **${query}** tidak ketemu nih kak. Coba:\n\n• Pakai judul lengkap (artist - judul)\n• Coba judul lain\n• Atau pakai link YouTube/Spotify/SoundCloud langsung`;
       } else if (
         e.message.includes("Cannot retrieve") ||
