@@ -112,6 +112,13 @@ module.exports = {
         );
       }
 
+      // Debug: log track yang di-resolve
+      console.log(
+        `[Play] Resolved track: ${res.track.title} by ${res.track.author}`,
+      );
+      console.log(`[Play] Track ID: ${res.track.identifier}`);
+      console.log(`[Play] Original query: ${query}`);
+
       if (isQueuing) {
         // Lagu ditambahkan ke antrian
         const queue = useQueue(interaction.guild.id);
@@ -151,31 +158,31 @@ module.exports = {
       const isLinkQuery = isValidLink(query);
 
       // Error messages yang lebih informatif
-      let errorMsg = `Gagal main lagu kak 😭\n\n**${e.message}**`;
+      let errorMsg = `Gagal main lagu kak \n\n**${e.message}**`;
 
       if (e.message.includes("No results")) {
         errorMsg = isLinkQuery
-          ? `Link tidak valid atau tidak bisa dimainkan kak 😭\n\nCoba:\n• Pastikan link publik (tidak private)\n• Coba judul lagu dengan ` /
+          ? `Link tidak valid atau tidak bisa dimainkan kak \n\nCoba:\n• Pastikan link publik (tidak private)\n• Coba judul lagu dengan ` /
             musik[judul]`\n• Atau pakai link yang lain`
           : `Lagu **${query}** tidak ketemu nih kak. Coba:\n\n• Pakai judul lengkap (artist - judul)\n• Coba judul lain\n• Atau pakai link YouTube/Spotify/SoundCloud langsung`;
       } else if (
         e.message.includes("Cannot retrieve") ||
         e.message.includes("unavailable")
       ) {
-        errorMsg = `Lagu **${query}** gak bisa dimainkan kak. Kemungkinan:\n\n• 🌍 Diblock di negara ini\n• 🔒 Konten terbatas/Private\n• ❌ Video dihapus\n• 🔐 Login required\n\nCoba lagu lain ya kak! 🎵`;
+        errorMsg = `Lagu **${query}** gak bisa dimainkan kak. Kemungkinan:\n\n• Diblock di negara ini\n• Konten terbatas/Private\n• Video dihapus\n• Login required\n\nCoba lagu lain ya kak!`;
       } else if (e.message.includes("FFmpeg")) {
-        errorMsg = `Sistem audio error kak. Hubungi developer! 🛠️`;
+        errorMsg = `Maaf kak, ada masalah dengan pemrosesan audio. Coba lagi ya! \n\n**${e.message}**`;
       } else if (
         e.message.includes("ETIMEDOUT") ||
         e.message.includes("timeout")
       ) {
         errorMsg = isLinkQuery
-          ? `Link timeout kak. Server/koneksi lambat. Coba lagi dalam beberapa saat 🌐`
-          : `Koneksi lambat kak. Coba lagi dalam beberapa saat ya 🌐`;
+          ? `Link timeout kak. Server/koneksi lambat. Coba lagi dalam beberapa saat`
+          : `Koneksi lambat kak. Coba lagi dalam beberapa saat ya`;
       } else if (e.message.includes("403") || e.message.includes("401")) {
-        errorMsg = `Video ini private atau age-restricted kak. Coba lagu lain ya 🔞`;
+        errorMsg = `Video ini private atau age-restricted kak. Coba lagu lain ya `;
       } else if (e.message.includes("deleted")) {
-        errorMsg = `Video sudah dihapus kak. Coba lagu lain ya 🗑️`;
+        errorMsg = `Video sudah dihapus kak. Coba lagu lain ya`;
       }
 
       await interaction.editReply({
