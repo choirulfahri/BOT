@@ -82,7 +82,6 @@ module.exports = {
                 leaveOnEmptyCooldown: 0,
                 leaveOnEndCooldown: 0,
               },
-              searchEngine: isLink ? "SpotifyExtractor" : undefined,
             }),
             // Timeout 45 detik untuk link, 30 untuk search
             new Promise((_, reject) =>
