@@ -64,6 +64,23 @@ client.player.events.on("playerError", (queue, error) => {
     // Load semua default extractors (YouTube, Spotify, SoundCloud, dll)
     await client.player.extractors.loadMulti(DefaultExtractors);
 
+    // Setup Spotify credentials jika tersedia
+    if (process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET) {
+      try {
+        const spotifyExtractor =
+          client.player.extractors.get("SpotifyExtractor");
+        if (spotifyExtractor) {
+          spotifyExtractor.setCredentials({
+            clientID: process.env.SPOTIFY_CLIENT_ID,
+            clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+          });
+          console.log("[Spotify] Credentials berhasil di-setup.");
+        }
+      } catch (err) {
+        console.warn("[Spotify] Gagal setup credentials:", err.message);
+      }
+    }
+
     console.log("[Musik] Extractor berhasil dimuat.");
     console.log(
       "[Musik] Supported sources: YouTube, Spotify, SoundCloud, Apple Music, dan lebih banyak",
