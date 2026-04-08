@@ -178,7 +178,7 @@ module.exports = {
             "Kak masuk voice channel dulu ya kalau mau putar lagu :)",
           );
         let query = message.content
-          .replace(/<@!?\d+>/g, "")
+          .replace(/<@!?&?\d+>/g, "")
           .replace(/\*\*|__|\*|_/g, "")
           .trim();
 
@@ -362,8 +362,8 @@ module.exports = {
         if (!vc) {
           return message.reply("Kak masuk voice channel dulu ya!");
         }
-        const query = message.content
-          .replace(/<@!?\d+>/g, "")
+        let query = message.content
+          .replace(/<@!?&?\d+>/g, "")
           .replace(/(cari|search|nyari)/i, "")
           .trim();
         if (!query) {

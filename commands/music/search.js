@@ -17,7 +17,7 @@ module.exports = {
         .setRequired(true),
     ),
   async execute(interaction) {
-    const query = interaction.options.getString("judul");
+    let query = interaction.options.getString("judul");
     const userChannel = interaction.member.voice.channel;
 
     if (!userChannel) {
