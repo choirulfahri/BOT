@@ -179,6 +179,7 @@ module.exports = {
           );
         const query = message.content
           .replace(/<@!?\d+>/g, "")
+          .replace(/@[\w-]+\s*/g, "")
           .replace(/(putar|play|musik|lagu|cari)/i, "")
           .trim();
         if (!query)
