@@ -57,6 +57,11 @@ module.exports = {
       const isLink = isValidLink(query);
       const searchType = isLink ? "Direct link" : "Search by title";
 
+      // Strip query parameters dari URL jika link
+      if (isLink) {
+        query = query.split("?")[0];
+      }
+
       console.log(`[Play] ${searchType}: ${query}`);
 
       // Retry logic untuk handle YouTube blocks dan timeout

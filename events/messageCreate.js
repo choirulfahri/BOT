@@ -195,6 +195,11 @@ module.exports = {
         // Clean mention format apapun
         query = query.replace(/@[\w\-\s.#]+/g, "").trim();
 
+        // Strip query parameters dari URL jika ada
+        if (query.includes("://")) {
+          query = query.split("?")[0].trim();
+        }
+
         if (!query)
           return message.reply(
             "Kak mau putar lagu apa? kaya: `tag aku putar Hindia`",
