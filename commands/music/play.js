@@ -5,10 +5,10 @@ const { useQueue } = require("discord-player");
 function isValidLink(query) {
   const linkPatterns = {
     youtube:
-      /^(https?:\/\/)?(www\.)?(youtube|youtu\.be|youtube-nocookie\.com)\/.+/i,
+      /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+/i,
     spotify:
       /^(https?:\/\/)?(open\.)?spotify\.com\/(track|playlist|album)\/.+/i,
-    soundcloud: /^(https?:\/\/)?(www\.)?(soundcloud\.com)\/.+/i,
+    soundcloud: /^(https?:\/\/)?(www\.)?soundcloud\.com\/.+/i,
     apple: /^(https?:\/\/)?(music\.)?apple\.com\/.+/i,
   };
 
