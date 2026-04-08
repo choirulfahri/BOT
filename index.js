@@ -64,20 +64,6 @@ client.player.events.on("playerError", (queue, error) => {
     // Load semua default extractors (YouTube, Spotify, SoundCloud, dll)
     await client.player.extractors.loadMulti(DefaultExtractors);
 
-    // Tambahan: load YouTube extractor dengan ytdl-core sebagai fallback
-    try {
-      const { YoutubeiExtractor } = require("@discord-player/extractor");
-      await client.player.extractors.register(YoutubeiExtractor, {
-        biography: true,
-        streamOptions: {
-          useragent:
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-      });
-    } catch (e) {
-      console.warn("[Musik] YoutubeiExtractor failed:", e.message);
-    }
-
     console.log("[Musik] Extractor berhasil dimuat.");
     console.log(
       "[Musik] Supported sources: YouTube, Spotify, SoundCloud, Apple Music, dan lebih banyak",
