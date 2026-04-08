@@ -1,11 +1,14 @@
-const { Events } = require('discord.js');
+const { Events } = require("discord.js");
 
 module.exports = {
-    name: Events.ClientReady,
-    once: true,
-    async execute(client) {
-        console.log(`Bot berhasil terhubung dan siap! Login sebagai ${client.user.tag}`);
-        client.user.setActivity('Memantau para members yang toxic', { type: 2 }); // type 2 = Listening
-        console.log('[Voice] Bot siap, akan join otomatis ke channel saat music diputar pertama kali.');
-    },
+  name: Events.ClientReady,
+  once: true,
+  async execute(client) {
+    console.log(`Hallo kakak developer aku udah online nih ${client.user.tag}`);
+    client.user.setActivity(
+      "Hallo kakak kakak semua aku assistent Developer, Salam Kenal ya",
+      { type: 2 },
+    ); // type 2 = Listening
+    console.log("[Voice] aku siap kak");
+  },
 };

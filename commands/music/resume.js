@@ -1,19 +1,25 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { useQueue } = require('discord-player');
+const { SlashCommandBuilder } = require("discord.js");
+const { useQueue } = require("discord-player");
 
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('resume')
-        .setDescription('Lanjutkan lagu yang di-pause'),
-    async execute(interaction) {
-        const queue = useQueue(interaction.guild.id);
-        if (!queue) {
-            return interaction.reply({ content: 'ga ada lagu yang lagi diputar bro', ephemeral: true });
-        }
-        if (!queue.node.isPaused()) {
-            return interaction.reply({ content: 'lagunya lagi jalan bro, ga di-pause', ephemeral: true });
-        }
-        queue.node.resume();
-        await interaction.reply({ content: '▶️ lanjut ngamen lagi!' });
-    },
+  data: new SlashCommandBuilder()
+    .setName("resume")
+    .setDescription("Aku lanjut nyanyiin lagunya lagi ya kak"),
+  async execute(interaction) {
+    const queue = useQueue(interaction.guild.id);
+    if (!queue) {
+      return interaction.reply({
+        content: "Aku lagi ngak nyanyiin lagu apapun nih kak",
+        ephemeral: true,
+      });
+    }
+    if (!queue.node.isPaused()) {
+      return interaction.reply({
+        content: "Aku lagi ngak nyanyiin lagu apapun nih kak",
+        ephemeral: true,
+      });
+    }
+    queue.node.resume();
+    await interaction.reply({ content: "Aku lanjut nyanyi ya kak" });
+  },
 };

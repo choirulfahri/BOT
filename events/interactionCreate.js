@@ -19,9 +19,9 @@ module.exports = {
         } catch (error) {
             console.error(`Error saat menjalankan command ${interaction.commandName}:`, error);
             if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: '❌ Ada masalah saat mengeksekusi command!', ephemeral: true });
+                await interaction.followUp({ content: ' Ada masalah saat mengeksekusi command!', ephemeral: true });
             } else {
-                await interaction.reply({ content: '❌ Ada masalah saat mengeksekusi command!', ephemeral: true });
+                await interaction.reply({ content: ' Ada masalah saat mengeksekusi command!', ephemeral: true });
             }
         }
     },
