@@ -177,11 +177,24 @@ module.exports = {
           return message.reply(
             "Kak masuk voice channel dulu ya kalau mau putar lagu :)",
           );
-        const query = message.content
+        let query = message.content
           .replace(/<@!?\d+>/g, "")
-          .replace(/@[\w-]+\s*/g, "")
-          .replace(/(putar|play|musik|lagu|cari)/i, "")
+          .replace(/\*\*|__|\*|_/g, "")
           .trim();
+
+        // Ekstrak bagian setelah command keyword
+        const commandMatch = query.match(
+          /(putar|play|musik|lagu|cari)\s+(.+)/i,
+        );
+        if (commandMatch) {
+          query = commandMatch[2].trim();
+        } else {
+          query = query.replace(/(putar|play|musik|lagu|cari)/i, "").trim();
+        }
+
+        // Clean mention format apapun
+        query = query.replace(/@[\w\-\s.#]+/g, "").trim();
+
         if (!query)
           return message.reply(
             "Kak mau putar lagu apa? kaya: `tag aku putar Hindia`",
