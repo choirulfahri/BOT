@@ -212,7 +212,7 @@ module.exports = {
         queue.tracks.clear();
         queue.node.stop();
         return message.reply(
-          "Aku berhenti nyanyi ya kak, kalau mau denger lagi tinggal tag aku dan bilang mau denger lagu apa :)",
+          "Aku berhenti nyanyi nih kak ?, Suara ku gak enak ya ?",
         );
       }
 
