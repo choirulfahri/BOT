@@ -3,16 +3,15 @@ const { useQueue } = require("discord-player");
 
 // Validasi link dari berbagai source
 function isValidLink(query) {
-  const linkPatterns = {
-    youtube:
-      /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+/i,
-    spotify:
-      /^(https?:\/\/)?(open\.)?spotify\.com\/(track|playlist|album)\/.+/i,
-    soundcloud: /^(https?:\/\/)?(www\.)?soundcloud\.com\/.+/i,
-    apple: /^(https?:\/\/)?(music\.)?apple\.com\/.+/i,
+  // Simple keyword-based detection (lebih robust)
+  const linkKeywords = {
+    youtube: /youtube\.com|youtu\.be/i,
+    spotify: /spotify\.com/i,
+    soundcloud: /soundcloud\.com/i,
+    apple: /music\.apple\.com/i,
   };
 
-  return Object.values(linkPatterns).some((pattern) => pattern.test(query));
+  return Object.values(linkKeywords).some((pattern) => pattern.test(query));
 }
 
 module.exports = {
