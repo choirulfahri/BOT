@@ -198,7 +198,8 @@ module.exports = {
         // Strip query parameters dari URL jika ada
         if (query.includes("://") && !query.includes("youtube.com/watch")) {
           query = query.split("?si=")[0].trim();
-          query = query.split("&si=")[0].trim();
+          let cleanQuery = query.split("&si=")[0].trim();
+          query = cleanQuery;
         }
 
         if (!query)
