@@ -25,7 +25,7 @@ module.exports = {
         .setRequired(true),
     ),
   async execute(interaction) {
-    const query = interaction.options.getString("lagu");
+    let query = interaction.options.getString("lagu");
     const userChannel = interaction.member.voice.channel;
 
     if (!userChannel) {
@@ -39,7 +39,7 @@ module.exports = {
     const botVoiceState = interaction.guild.members.me.voice;
     if (botVoiceState.channel && botVoiceState.channel.id !== userChannel.id) {
       return interaction.reply({
-        content: `pindah dulu ke **${botVoiceState.channel.name}** ya, gue lagi di sana!`,
+        content: `aku pindah dulu **${botVoiceState.channel.name}** ya, aku lagi disana!`,
         ephemeral: true,
       });
     }
@@ -62,7 +62,7 @@ module.exports = {
         if (!query.includes("youtube.com/watch")) {
           // Hanya hapus param tambahan untuk link yang tidak bergantung pada ?v=
           query = query.split("?si=")[0]; // Hapus '?si=' (parameter tracking)
-          let cleanQuery = query.split('&si=')[0];
+          let cleanQuery = query.split("&si=")[0];
           query = cleanQuery;
         }
       }
