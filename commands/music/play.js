@@ -61,7 +61,8 @@ module.exports = {
       if (isLink) {
         if (!query.includes("youtube.com/watch")) {
           // Hanya hapus param tambahan untuk link yang tidak bergantung pada ?v=
-          query = query.split('&')[0]; // Hapus '&si=' tapi biarkan '?' pertama  
+          query = query.split("?si=")[0]; // Hapus '?si=' (parameter tracking)
+          query = query.split("&si=")[0];
         }
       }
 
