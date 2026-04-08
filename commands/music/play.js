@@ -57,9 +57,12 @@ module.exports = {
       const isLink = isValidLink(query);
       const searchType = isLink ? "Direct link" : "Search by title";
 
-      // Strip query parameters dari URL jika link
+      // Strip query parameters dari URL jika link (Kecuali youtube watch yang butuh ?v=)
       if (isLink) {
-        query = query.split("?")[0];
+        if (!query.includes("youtube.com/watch")) {
+          // Hanya hapus param tambahan untuk link yang tidak bergantung pada ?v=
+          query = query.split('&')[0]; // Hapus '&si=' tapi biarkan '?' pertama  
+        }
       }
 
       console.log(`[Play] ${searchType}: ${query}`);

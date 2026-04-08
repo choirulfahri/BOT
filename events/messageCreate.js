@@ -196,8 +196,8 @@ module.exports = {
         query = query.replace(/@[\w\-\s.#]+/g, "").trim();
 
         // Strip query parameters dari URL jika ada
-        if (query.includes("://")) {
-          query = query.split("?")[0].trim();
+        if (query.includes("://") && !query.includes("youtube.com/watch")) {
+          query = query.split("&")[0].trim();
         }
 
         if (!query)
