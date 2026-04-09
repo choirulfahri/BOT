@@ -71,42 +71,42 @@ client.player.events.on("playerError", (queue, error) => {
     try {
       const { YoutubeExtractor } = require("discord-player-youtube");
 
-      // BIKIN KELAS CUSTOM: Mencegah YouTube nge-block suaranya (You must be signed in)
-      class MyYoutubeBypass extends YoutubeExtractor {
-        // Bridge dipakai saat muter Spotify (karena Spotify nge-bridge ke YouTube)
-        async bridge(track, context) {
+      // GLOBAL PROTOTYPE HACK: Memutus rute YouTube dan dialihkan permanen ke SoundCloud
+      YoutubeExtractor.prototype.bridge = async function(track, context) {
           const query = track.title + " " + track.author;
           const res = await this.context.player.search(query, {
              searchEngine: "soundcloud",
              requestedBy: track.requestedBy
           });
           return res?.tracks?.[0] || null;
-        }
+      };
 
-        // Stream dipakai saat muter YouTube Murni (juga diarahkan ke target SoundCloud)
-        async stream(track) {
+      YoutubeExtractor.prototype.stream = async function(track) {
           const query = track.title + " " + track.author;
           const sc = this.context.player.extractors.store.get("com.discord-player.soundcloudextractor");
           const res = await this.context.player.search(query, {
               searchEngine: "soundcloud",
               requestedBy: track.requestedBy
           });
+          
           if (res && res.tracks.length > 0) {
               return sc.stream(res.tracks[0]);
           }
-          return null;
-        }
+          
+          // Fallback error agar tidak return null (sebab null memicu error 'on' di discord-player)
+          throw new Error("Lagu tidak ditemukan di SoundCloud Bypass.");
+      };
+
+      // Jika ada extractor class lain yang perlu ditimpa (antisipasi jika discord-player menggunakan innertube bridge yang tertanam)
+      const spot = client.player.extractors.store.get("com.discord-player.spotifyextractor");
+      if (spot) {
+          spot.createBridgeQuery = (track) => track.title + " " + track.author;
       }
 
-      // Hapus yang lama dari default
-      client.player.extractors.store.delete("com.discord-player.youtubeextractor");
-      client.player.extractors.store.delete("ext:youtube");
-      
-      // Pasang yang baru
-      await client.player.extractors.register(MyYoutubeBypass, {});
-      console.log("[Musik] Custom YoutubeExtractor (SoundCloud Bypass) berhasil dimuat.");
+      await client.player.extractors.register(YoutubeExtractor, {});
+      console.log("[Musik] YoutubeExtractor (SoundCloud Bypass) berhasil dipasang ke Prototype.");
     } catch (err) {
-      console.warn("[Musik] Custom YoutubeExtractor gagal dimuat:", err.message);
+      console.warn("[Musik] YoutubeExtractor Bypass gagal dipasang:", err.message);
     }
 
     // Setup Spotify credentials jika tersedia
