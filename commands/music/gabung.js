@@ -37,7 +37,7 @@ module.exports = {
         content: `sip aku gabung ya ke **${userChannel.name}**`,
       });
     } catch (error) {
-      console.error("Gagal join voice channel:", error);
+      console.error("duh kak ada error ni maaf:", error);
       await interaction.reply({
         content: "Aduh kak ada error ni maaf, di coba lagi ya",
         ephemeral: true,
